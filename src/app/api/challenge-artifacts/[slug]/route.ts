@@ -159,13 +159,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   }
 
   const { slug } = await params;
-  const [challenge] = await db.select({ isPublished: challenges.isPublished }).from(challenges).where(eq(challenges.slug, slug)).limit(1);
-  if (!challenge || (!challenge.isPublished && session.user.role !== "admin")) {
+  const blueprint = findChallengeBlueprintBySlug(slug);
+  if (!blueprint) {
     return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
   }
 
-  const blueprint = findChallengeBlueprintBySlug(slug);
-  if (!blueprint) {
+  const [challenge] = await db.select({ isPublished: challenges.isPublished }).from(challenges).where(eq(challenges.title, blueprint.title)).limit(1);
+  if (!challenge || (!challenge.isPublished && session.user.role !== "admin")) {
     return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
   }
   const resource = blueprint.resources[0];
