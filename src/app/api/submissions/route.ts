@@ -1,84 +1,89 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { challenges, submissions, users } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { and, count, eq, gte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { challenges, submissions } from "@/lib/db/schema";
+
+const MAX_ATTEMPTS_PER_MINUTE = 10;
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Payload tidak valid" }, { status: 400 });
+  }
+  const input = body as Record<string, unknown>;
+  const challengeId = typeof input.challengeId === "string" ? input.challengeId : "";
+  const flag = typeof input.flag === "string" ? input.flag.trim() : "";
+  if (!challengeId || !flag || flag.length > 512) {
+    return NextResponse.json({ error: "Challenge dan flag wajib diisi" }, { status: 400 });
   }
 
-  const { challengeId, flag } = await request.json();
-
-  if (!challengeId || !flag) {
-    return NextResponse.json(
-      { error: "challengeId and flag are required" },
-      { status: 400 }
-    );
+  const [challenge] = await db.select().from(challenges).where(eq(challenges.id, challengeId)).limit(1);
+  if (!challenge || (!challenge.isPublished && session.user.role !== "admin")) {
+    return NextResponse.json({ error: "Challenge tidak ditemukan" }, { status: 404 });
   }
 
-  const challenge = await db
-    .select()
-    .from(challenges)
-    .where(eq(challenges.id, challengeId))
-    .limit(1);
-
-  if (challenge.length === 0) {
-    return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
-  }
-
-  // Check if already solved
-  const alreadySolved = await db
-    .select()
+  const since = new Date(Date.now() - 60_000);
+  const [attempts] = await db
+    .select({ value: count() })
     .from(submissions)
-    .where(
-      and(
-        eq(submissions.userId, session.user.id),
-        eq(submissions.challengeId, challengeId),
-        eq(submissions.isCorrect, true)
-      )
-    )
-    .limit(1);
-
-  const isCorrect = bcrypt.compareSync(flag, challenge[0].flagHash);
-
-  // Record submission
-  await db.insert(submissions).values({
-    id: nanoid(),
-    userId: session.user.id,
-    challengeId,
-    flagSubmitted: flag,
-    isCorrect,
-  });
-
-  if (isCorrect && alreadySolved.length === 0) {
-    // Update points & solve count
-    await db
-      .update(users)
-      .set({
-        totalPoints: sql`${users.totalPoints} + ${challenge[0].points}`,
-      })
-      .where(eq(users.id, session.user.id));
-
-    await db
-      .update(challenges)
-      .set({
-        solvedCount: sql`${challenges.solvedCount} + 1`,
-      })
-      .where(eq(challenges.id, challengeId));
+    .where(and(eq(submissions.userId, session.user.id), gte(submissions.createdAt, since)));
+  if ((attempts?.value ?? 0) >= MAX_ATTEMPTS_PER_MINUTE) {
+    return NextResponse.json({ error: "Terlalu banyak percobaan. Tunggu satu menit." }, { status: 429 });
   }
+
+  const isCorrect = await bcrypt.compare(flag, challenge.flagHash);
+  const fingerprint = createHash("sha256")
+    .update(`${process.env.BETTER_AUTH_SECRET ?? "labspectra"}:${flag}`)
+    .digest("hex");
+
+  if (!isCorrect) {
+    await db.insert(submissions).values({
+      id: nanoid(),
+      userId: session.user.id,
+      challengeId,
+      submissionFingerprint: fingerprint,
+      isCorrect: false,
+    });
+    return NextResponse.json({ correct: false, alreadySolved: false, points: 0 });
+  }
+
+  const submissionId = nanoid();
+  const solveId = nanoid();
+  const result = await db.execute<{ awarded: boolean }>(sql`
+    WITH recorded_submission AS (
+      INSERT INTO submissions (id, user_id, challenge_id, flag_submitted, is_correct)
+      VALUES (${submissionId}, ${session.user.id}, ${challengeId}, ${fingerprint}, true)
+    ), new_solve AS (
+      INSERT INTO solves (id, user_id, challenge_id, points_awarded)
+      VALUES (${solveId}, ${session.user.id}, ${challengeId}, ${challenge.points})
+      ON CONFLICT (user_id, challenge_id) DO NOTHING
+      RETURNING user_id, challenge_id
+    ), update_user AS (
+      UPDATE users
+      SET total_points = total_points + ${challenge.points}, updated_at = now()
+      WHERE id IN (SELECT user_id FROM new_solve)
+    ), update_challenge AS (
+      UPDATE challenges
+      SET solved_count = solved_count + 1, updated_at = now()
+      WHERE id IN (SELECT challenge_id FROM new_solve)
+    )
+    SELECT EXISTS(SELECT 1 FROM new_solve) AS awarded
+  `);
+  const awarded = result.rows[0]?.awarded === true;
 
   return NextResponse.json({
-    correct: isCorrect,
-    alreadySolved: alreadySolved.length > 0,
-    points: isCorrect && alreadySolved.length === 0 ? challenge[0].points : 0,
+    correct: true,
+    alreadySolved: !awarded,
+    points: awarded ? challenge.points : 0,
   });
 }

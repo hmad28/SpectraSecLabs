@@ -1,112 +1,51 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { and, desc, eq } from "drizzle-orm";
+import { CategoryBadge, DifficultyBadge } from "@/components/category-badge";
+import { SiteHeader } from "@/components/site-header";
 import { db } from "@/lib/db";
 import { challenges } from "@/lib/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { challengeCategories, challengeDifficulties } from "@/lib/validation";
 
-const categoryColors: Record<string, string> = {
-  web: "badge-cyan",
-  crypto: "badge-violet",
-  forensic: "badge-yellow",
-  osint: "badge-green",
-  reversing: "badge-red",
-  pwn: "badge-red",
-  misc: "badge-violet",
-};
-
-export default async function LabsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  }).catch(() => null);
-
-  const allChallenges = await db
-    .select({
-      id: challenges.id,
-      title: challenges.title,
-      slug: challenges.slug,
-      category: challenges.category,
-      difficulty: challenges.difficulty,
-      points: challenges.points,
-      solvedCount: challenges.solvedCount,
-    })
-    .from(challenges)
-    .where(eq(challenges.isPublished, true))
-    .orderBy(desc(challenges.createdAt));
+export default async function LabsPage({ searchParams }: { searchParams: Promise<{ category?: string; difficulty?: string }> }) {
+  const filters = await searchParams;
+  const category = challengeCategories.includes(filters.category as never) ? filters.category : undefined;
+  const difficulty = challengeDifficulties.includes(filters.difficulty as never) ? filters.difficulty : undefined;
+  const conditions = [eq(challenges.isPublished, true)];
+  if (category) conditions.push(eq(challenges.category, category as never));
+  if (difficulty) conditions.push(eq(challenges.difficulty, difficulty as never));
+  const allChallenges = await db.select({
+    id: challenges.id, title: challenges.title, slug: challenges.slug, description: challenges.description,
+    category: challenges.category, difficulty: challenges.difficulty, points: challenges.points, solvedCount: challenges.solvedCount,
+  }).from(challenges).where(and(...conditions)).orderBy(desc(challenges.createdAt));
 
   return (
-    <div>
-      <nav className="navbar">
-        <Link href="/" className="navbar-brand">
-          SPECTRASEC<span className="text-violet-bright">.LABS</span>
-        </Link>
-        <div className="navbar-links">
-          <Link href="/labs" className="navbar-link" style={{ color: "var(--paper)" }}>Labs</Link>
-          <Link href="/leaderboard" className="navbar-link">Leaderboard</Link>
-          {session ? (
-            <>
-              <Link href="/dashboard" className="navbar-link">Dashboard</Link>
-              <Link href="/labs" className="btn btn-primary" style={{ minHeight: 36, padding: "0 16px", fontSize: 13 }}>
-                {session.user.displayName || session.user.name}
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="navbar-link">Masuk</Link>
-              <Link href="/register" className="btn btn-primary" style={{ minHeight: 36, padding: "0 16px", fontSize: 13 }}>Daftar</Link>
-            </>
-          )}
-        </div>
-      </nav>
-
-      <main className="container" style={{ paddingBlock: "48px 80px" }}>
-        <div className="page-header">
-          <h1>Labs</h1>
-          <p>Jelajahi dan selesaikan tantangan CTF</p>
-        </div>
-
-        {allChallenges.length === 0 ? (
-          <div className="empty-state">
-            <p>Belum ada challenge yang dipublikasikan.</p>
-            {session?.user.role === "admin" && (
-              <Link href="/admin/challenges/new" className="btn btn-primary" style={{ marginTop: 16, display: "inline-flex" }}>
-                Buat Challenge
-              </Link>
-            )}
+    <>
+      <SiteHeader active="labs" />
+      <main className="section">
+        <div className="wide-container">
+          <div className="section-head reveal">
+            <div><p className="eyebrow">CHALLENGE ARCHIVE</p><h1>Pilih surface.<br />Temukan celah.</h1></div>
+            <p>{allChallenges.length} challenge tersedia. Semua target dirancang untuk lingkungan legal dan scope yang jelas.</p>
           </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-            {allChallenges.map((c) => (
-              <Link
-                key={c.id}
-                href={`/labs/${c.slug}`}
-                className="card category-card"
-                style={{ padding: 24, textDecoration: "none" }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <span className={`badge ${categoryColors[c.category] || "badge-violet"}`}>
-                    {c.category.toUpperCase()}
-                  </span>
-                  <span className={`badge ${c.difficulty === "easy" ? "badge-green" : c.difficulty === "medium" ? "badge-yellow" : c.difficulty === "hard" ? "badge-red" : "badge-violet"}`}>
-                    {c.difficulty}
-                  </span>
-                </div>
-                <h3 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>
-                  {c.title}
-                </h3>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--line)" }}>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--violet-bright)", fontWeight: 700 }}>
-                    {c.points} pts
-                  </span>
-                  <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {c.solvedCount} solved
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+          <nav className="filter-bar" aria-label="Filter challenge">
+            <Link href="/labs" data-active={!category}>ALL</Link>
+            {challengeCategories.map((item) => <Link key={item} href={`/labs?category=${item}`} data-active={category === item}>{item.toUpperCase()}</Link>)}
+          </nav>
+          {allChallenges.length ? (
+            <div className="challenge-grid reveal reveal-delay">
+              {allChallenges.map((challenge, index) => (
+                <Link key={challenge.id} href={`/labs/${challenge.slug}`} className="challenge-card">
+                  <div className="challenge-meta"><CategoryBadge category={challenge.category} /><DifficultyBadge difficulty={challenge.difficulty} /></div>
+                  <span className="card-index">{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{challenge.title}</h3>
+                  <p>{challenge.description.slice(0, 116)}{challenge.description.length > 116 ? "..." : ""}</p>
+                  <div className="challenge-footer"><strong>{challenge.points} PTS</strong><span>{challenge.solvedCount} SOLVES</span></div>
+                </Link>
+              ))}
+            </div>
+          ) : <div className="empty-state"><p>Belum ada challenge untuk filter ini.</p><Link href="/labs" className="btn btn-ghost empty-action">Reset Filter</Link></div>}
+        </div>
       </main>
-    </div>
+    </>
   );
 }

@@ -1,166 +1,41 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { challenges, challengeFiles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { challengeFiles, challenges } from "@/lib/db/schema";
+import { CategoryBadge, DifficultyBadge } from "@/components/category-badge";
+import { SiteHeader } from "@/components/site-header";
 import FlagSubmit from "./flag-submit";
 
-export default async function ChallengePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ChallengePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const session = await auth.api
-    .getSession({ headers: await headers() })
-    .catch(() => null);
-
-  if (!session) {
-    redirect(`/login?redirect=/labs/${slug}`);
-  }
-
-  const challenge = await db
-    .select()
-    .from(challenges)
-    .where(eq(challenges.slug, slug))
-    .limit(1);
-
-  if (challenge.length === 0) notFound();
-  const c = challenge[0];
-
-  const files = await db
-    .select()
-    .from(challengeFiles)
-    .where(eq(challengeFiles.challengeId, c.id));
-
-  const categoryColors: Record<string, string> = {
-    web: "badge-cyan",
-    crypto: "badge-violet",
-    forensic: "badge-yellow",
-    osint: "badge-green",
-    reversing: "badge-red",
-    pwn: "badge-red",
-    misc: "badge-violet",
-  };
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  if (!session) redirect(`/login?redirect=${encodeURIComponent(`/labs/${slug}`)}`);
+  const [challenge] = await db.select().from(challenges)
+    .where(session.user.role === "admin" ? eq(challenges.slug, slug) : and(eq(challenges.slug, slug), eq(challenges.isPublished, true))).limit(1);
+  if (!challenge) notFound();
+  const files = await db.select().from(challengeFiles).where(eq(challengeFiles.challengeId, challenge.id));
 
   return (
-    <div>
-      <nav className="navbar">
-        <Link href="/" className="navbar-brand">
-          SPECTRASEC<span className="text-violet-bright">.LABS</span>
-        </Link>
-        <div className="navbar-links">
-          <Link href="/labs" className="navbar-link" style={{ color: "var(--paper)" }}>
-            ← Labs
-          </Link>
-        </div>
-      </nav>
-
-      <main className="container" style={{ paddingBlock: "32px 80px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 32, alignItems: "start" }}>
-          {/* Challenge Detail */}
-          <div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-              <span className={`badge ${categoryColors[c.category] || "badge-violet"}`}>
-                {c.category.toUpperCase()}
-              </span>
-              <span
-                className={`badge ${
-                  c.difficulty === "easy"
-                    ? "badge-green"
-                    : c.difficulty === "medium"
-                    ? "badge-yellow"
-                    : c.difficulty === "hard"
-                    ? "badge-red"
-                    : "badge-violet"
-                }`}
-              >
-                {c.difficulty}
-              </span>
-              <span className="badge badge-violet">{c.points} pts</span>
-            </div>
-
-            <h1
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 32,
-                fontWeight: 800,
-                margin: "0 0 24px",
-                lineHeight: 1.1,
-              }}
-            >
-              {c.title}
-            </h1>
-
-            <div
-              style={{
-                color: "var(--muted)",
-                lineHeight: 1.8,
-                fontSize: 15,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {c.description}
-            </div>
-
-            {c.flagHint && (
-              <div
-                style={{
-                  marginTop: 24,
-                  padding: 16,
-                  border: "1px solid rgba(234,179,8,.25)",
-                  borderRadius: 8,
-                  background: "rgba(234,179,8,.06)",
-                  fontSize: 13,
-                  color: "var(--yellow)",
-                }}
-              >
-                <strong>Format Flag:</strong> {c.flagHint}
-              </div>
-            )}
-
-            {files.length > 0 && (
-              <div style={{ marginTop: 24 }}>
-                <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>
-                  Files
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {files.map((f) => (
-                    <a
-                      key={f.id}
-                      href={f.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="card category-card"
-                      style={{
-                        padding: "12px 16px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        textDecoration: "none",
-                      }}
-                    >
-                      <span style={{ fontSize: 14, fontWeight: 600 }}>{f.name}</span>
-                      <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                        {(f.size / 1024).toFixed(0)} KB
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+    <>
+      <SiteHeader active="labs" />
+      <main className="section">
+        <div className="container">
+          <Link href="/labs" className="back-link">← Kembali ke archive</Link>
+          <div className="challenge-layout">
+            <article className="challenge-body reveal">
+              <div className="challenge-meta"><CategoryBadge category={challenge.category} /><DifficultyBadge difficulty={challenge.difficulty} /><span className="badge badge-violet">{challenge.points} PTS</span></div>
+              <h1>{challenge.title}</h1>
+              <div className="challenge-description">{challenge.description}</div>
+              {challenge.flagHint ? <aside className="hint"><strong>FLAG FORMAT</strong><span>{challenge.flagHint}</span></aside> : null}
+              {files.length ? <section className="challenge-files"><h2>Challenge files</h2>{files.map((file) => <a key={file.id} className="file-row" href={file.url} target="_blank" rel="noreferrer"><span>{file.name}</span><span>{Math.max(1, Math.round(file.size / 1024))} KB ↗</span></a>)}</section> : null}
+            </article>
+            <FlagSubmit challengeId={challenge.id} solvedCount={challenge.solvedCount} />
           </div>
-
-          {/* Flag Submission Sidebar */}
-          <FlagSubmit
-            challengeId={c.id}
-            slug={slug}
-            solvedCount={c.solvedCount}
-          />
         </div>
       </main>
-    </div>
+    </>
   );
 }

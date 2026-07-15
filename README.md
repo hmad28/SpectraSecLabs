@@ -1,124 +1,64 @@
 # SpectraSec Labs
 
-> **Platform CTF Challenges** — Asah skill ethical hacking dan cyber security lewat tantangan.
-
-SpectraSec Labs adalah platform Capture The Flag (CTF) challenges untuk komunitas cyber security Indonesia. Dibangun dengan Next.js, Neon DB, dan UploadThing — siap deploy di Vercel free tier.
-
----
+Platform CTF untuk komunitas cyber security SpectraSec. Labs memakai Next.js App Router, Neon Postgres, Better Auth, UploadThing, dan Vercel serverless.
 
 ## Fitur
 
-- **7 Kategori Challenge** — Web, Crypto, Forensic, OSINT, Reversing, PWN, Misc
-- **4 Level Kesulitan** — Easy, Medium, Hard, Insane
-- **Leaderboard** — Peringkat pemain berdasarkan total poin
-- **Dashboard Pemain** — Statistik, challenge yang diselesaikan, progres
-- **Panel Admin** — CRUD challenges, kelola pengguna, lihat submission
-- **File Uploads** — Upload file challenge via UploadThing
-- **Auth** — Registrasi & login dengan Better Auth
+- Landing page dan visual system cyber-research yang konsisten dengan SpectraSec.
+- Challenge archive dengan filter kategori, difficulty, publish/unpublish, dan file artefak.
+- Auth email/password dan Google OAuth melalui Better Auth.
+- Submission flag dengan fingerprint non-reversible, rate limit, dan unique solve atomic.
+- Dashboard player, leaderboard, profile settings, dan avatar upload.
+- Admin control room: challenge CRUD, UploadThing, user roles, dan audit submissions.
 
-## Tech Stack
-
-| Layer | Teknologi |
-|-------|-----------|
-| Framework | [Next.js](https://nextjs.org/) |
-| Bahasa | [TypeScript](https://www.typescriptlang.org/) |
-| Database | [Neon DB](https://neon.tech/) (Postgres serverless) |
-| ORM | [Drizzle ORM](https://orm.drizzle.team/) |
-| Auth | [Better Auth](https://www.better-auth.com/) |
-| Storage | [UploadThing](https://uploadthing.com/) |
-| Styling | Pure CSS (dark cyber theme) |
-| Deploy | [Vercel](https://vercel.com/) (free tier) |
-
-## Cara Mulai
-
-### 1. Clone & Install
+## Local Setup
 
 ```bash
-git clone https://github.com/hmad28/SpectraSecLabs.git
-cd SpectraSecLabs
 npm install
-```
-
-### 2. Setup Environment
-
-Salin `.env.example` ke `.env.local` dan isi konfigurasi:
-
-```bash
-cp .env.example .env.local
-```
-
-| Variable | Deskripsi |
-|----------|-----------|
-| `DATABASE_URL` | Connection string dari Neon DB |
-| `BETTER_AUTH_SECRET` | Generate dengan `npx auth secret` |
-| `BETTER_AUTH_URL` | URL aplikasi (http://localhost:3000 untuk dev) |
-| `UPLOADTHING_TOKEN` | Token dari dashboard UploadThing |
-
-### 3. Setup Database
-
-```bash
-npx drizzle-kit push
-```
-
-### 4. Jalankan
-
-```bash
+Copy-Item .env.example .env.local
+npm run db:push
+npm run db:backfill
+npm run seed
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000).
+Environment variables yang diperlukan:
 
-### 5. Build untuk Production
-
-```bash
-npm run build
-npm start
+```text
+DATABASE_URL
+BETTER_AUTH_SECRET
+BETTER_AUTH_URL
+UPLOADTHING_TOKEN
+SUPER_ADMIN_EMAIL
+SUPER_ADMIN_PASSWORD
+GOOGLE_CLIENT_ID       # optional
+GOOGLE_CLIENT_SECRET   # optional
 ```
 
-## Struktur Proyek
+`.env.local` tidak boleh dikomit. Token yang pernah dibagikan di luar secret manager harus di-rotate sebelum production.
 
-```
-src/
-├── app/                    # Next.js App Router pages
-│   ├── admin/              # Admin panel (CRUD challenges, users, submissions)
-│   ├── api/                # API routes (auth, uploadthing)
-│   ├── dashboard/          # User dashboard & settings
-│   ├── labs/               # CTF challenges listing & detail
-│   ├── leaderboard/        # Player rankings
-│   ├── login/              # Login page
-│   ├── register/           # Register page
-│   ├── page.tsx            # Landing page
-│   ├── layout.tsx          # Root layout
-│   └── globals.css         # Design system (dark cyber theme)
-├── components/
-│   ├── ui/                 # UI primitives
-│   ├── layout/             # Navbar, sidebar, footer
-│   ├── labs/               # Challenge card, filters, flag submission
-│   ├── leaderboard/        # Leaderboard table
-│   ├── dashboard/          # User stats, settings form
-│   └── admin/              # Challenge form, users table, submissions log
-├── lib/
-│   ├── db/                 # Drizzle schema & client
-│   ├── auth/               # Better Auth config
-│   └── utils.ts            # Utility helpers
-└── middleware.ts            # Auth route protection
-```
+## Scripts
 
-## Skrip
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run lint` | ESLint |
+| `npm test` | Validation tests |
+| `npm run build` | Production build |
+| `npm run db:push` | Apply schema changes to Neon |
+| `npm run db:backfill` | Idempotent solve/name migration |
+| `npm run db:generate` | Generate Drizzle migration |
+| `npm run seed` | Create or reset super admin account |
 
-| Perintah | Deskripsi |
-|----------|-----------|
-| `npm run dev` | Jalankan development server |
-| `npm run build` | Build untuk production |
-| `npm start` | Jalankan production server |
-| `npm run lint` | Jalankan ESLint |
+## Vercel
 
-## Deploy ke Vercel
+Set semua environment variables pada Vercel untuk `Preview` dan `Production`; `.env.local` hanya berlaku di mesin lokal. Set `BETTER_AUTH_URL=https://labs.spectrasec.xyz` dan pastikan domain tersebut ditambahkan ke Google OAuth redirect serta Better Auth trusted origins.
 
-Project ini siap deploy ke Vercel. Hubungkan repository GitHub, set environment variables, dan deploy.
+Vercel cocok untuk challenge berbasis file dan flag. Challenge Web/Pwn yang membutuhkan container per user harus dijalankan pada isolated runner terpisah, bukan di function Vercel.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/hmad28/SpectraSecLabs)
+## Security Notes
 
-## Lisensi
-
-Hak cipta © 2026 SpectraSec. Dibuat untuk komunitas cyber security Indonesia.
+- API challenge detail tidak pernah mengembalikan `flagHash` ke player.
+- UploadThing hanya menerima upload dari user terautentikasi; file challenge hanya untuk admin.
+- Submission menyimpan fingerprint, bukan flag mentah.
+- Jangan menjalankan `npm audit fix --force` tanpa review karena dapat menurunkan versi Next.js/UploadThing secara breaking.

@@ -2,96 +2,30 @@
 
 import { useState } from "react";
 
-export default function FlagSubmit({
-  challengeId,
-  slug,
-  solvedCount,
-}: {
-  challengeId: string;
-  slug: string;
-  solvedCount: number;
-}) {
+export default function FlagSubmit({ challengeId, solvedCount }: { challengeId: string; solvedCount: number }) {
   const [flag, setFlag] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "correct" | "wrong" | "duplicate">("idle");
-  const [points, setPoints] = useState(0);
+  const [message, setMessage] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setStatus("loading");
-
     try {
-      const res = await fetch("/api/submissions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ challengeId, flag }),
-      });
-
-      const data = await res.json();
-
-      if (data.correct) {
-        if (data.alreadySolved) {
-          setStatus("duplicate");
-        } else {
-          setStatus("correct");
-          setPoints(data.points);
-        }
-      } else {
-        setStatus("wrong");
-      }
+      const response = await fetch("/api/submissions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ challengeId, flag }) });
+      const data = await response.json();
+      if (!response.ok) { setStatus("wrong"); setMessage(data.error || "Submission gagal"); return; }
+      if (!data.correct) { setStatus("wrong"); setMessage("Flag belum tepat. Periksa kembali analisismu."); return; }
+      if (data.alreadySolved) { setStatus("duplicate"); setMessage("Challenge ini sudah pernah kamu selesaikan."); return; }
+      setStatus("correct"); setMessage(`Verified solve. +${data.points} poin.`); setFlag("");
     } catch {
-      setStatus("wrong");
+      setStatus("wrong"); setMessage("Tidak dapat terhubung ke server.");
     }
   }
 
-  return (
-    <div className="card" style={{ padding: 24, position: "sticky", top: 24 }}>
-      <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>
-        Submit Flag
-      </h3>
-      <p style={{ color: "var(--muted)", fontSize: 12, margin: "0 0 16px" }}>
-        {solvedCount} pemain berhasil menyelesaikan
-      </p>
-
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input
-          className="input"
-          type="text"
-          placeholder="CTF{...}"
-          value={flag}
-          onChange={(e) => {
-            setFlag(e.target.value);
-            setStatus("idle");
-          }}
-          disabled={status === "loading"}
-        />
-
-        <button
-          type="submit"
-          className="btn btn-primary"
-          style={{ justifyContent: "center", minHeight: 42 }}
-          disabled={status === "loading" || !flag.trim()}
-        >
-          {status === "loading" ? "Memeriksa..." : "Submit"}
-        </button>
-      </form>
-
-      {status === "correct" && (
-        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.25)", color: "var(--green)", fontSize: 13, textAlign: "center" }}>
-          ✅ Benar! +{points} pts
-        </div>
-      )}
-
-      {status === "duplicate" && (
-        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, background: "rgba(234,179,8,.1)", border: "1px solid rgba(234,179,8,.25)", color: "var(--yellow)", fontSize: 13, textAlign: "center" }}>
-          ⚠️ Kamu sudah menyelesaikan challenge ini
-        </div>
-      )}
-
-      {status === "wrong" && (
-        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 8, background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.25)", color: "var(--red)", fontSize: 13, textAlign: "center" }}>
-          ✗ Flag salah. Coba lagi.
-        </div>
-      )}
-    </div>
-  );
+  return <aside className="card challenge-submit reveal reveal-delay">
+    <p className="eyebrow">VERIFY SOLUTION</p><h2>Submit flag.</h2><p className="submit-copy">{solvedCount} verified solve</p>
+    <form onSubmit={handleSubmit}><input className="input" aria-label="Flag" type="text" maxLength={512} placeholder="SPECTRA{...}" value={flag} onChange={(event) => { setFlag(event.target.value); setStatus("idle"); }} disabled={status === "loading"} /><button className="btn btn-primary submit-button" disabled={status === "loading" || !flag.trim()}>{status === "loading" ? "Memverifikasi..." : "Submit Flag →"}</button></form>
+    {status !== "idle" && status !== "loading" ? <div className={`submit-result ${status}`}>{message}</div> : null}
+    <p className="scope-note">Hanya praktikkan teknik pada lab atau sistem dengan izin eksplisit.</p>
+  </aside>;
 }

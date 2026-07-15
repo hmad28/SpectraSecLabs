@@ -4,6 +4,8 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: ["https://labs.spectrasec.xyz", "http://localhost:3000"],
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -11,7 +13,9 @@ export const auth = betterAuth({
   plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 8,
   },
+  rateLimit: { enabled: true, window: 60, max: 20 },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || "",

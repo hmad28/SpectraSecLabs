@@ -5,7 +5,7 @@ import * as schema from "./schema";
 function createDb() {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    return null as unknown as ReturnType<typeof drizzle<typeof schema>>;
+    throw new Error("DATABASE_URL is required");
   }
   const sql = neon(url);
   return drizzle(sql, { schema });
