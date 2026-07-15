@@ -1,72 +1,111 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { challenges } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
+
+const categoryColors: Record<string, string> = {
+  web: "badge-cyan",
+  crypto: "badge-violet",
+  forensic: "badge-yellow",
+  osint: "badge-green",
+  reversing: "badge-red",
+  pwn: "badge-red",
+  misc: "badge-violet",
+};
 
 export default async function LabsPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
-  });
+  }).catch(() => null);
+
+  const allChallenges = await db
+    .select({
+      id: challenges.id,
+      title: challenges.title,
+      slug: challenges.slug,
+      category: challenges.category,
+      difficulty: challenges.difficulty,
+      points: challenges.points,
+      solvedCount: challenges.solvedCount,
+    })
+    .from(challenges)
+    .where(eq(challenges.isPublished, true))
+    .orderBy(desc(challenges.createdAt));
 
   return (
-    <div className="min-h-screen">
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-line">
-        <Link href="/" className="font-display font-bold text-lg">
+    <div>
+      <nav className="navbar">
+        <Link href="/" className="navbar-brand">
           SPECTRASEC<span className="text-violet-bright">.LABS</span>
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="navbar-links">
+          <Link href="/labs" className="navbar-link" style={{ color: "var(--paper)" }}>Labs</Link>
+          <Link href="/leaderboard" className="navbar-link">Leaderboard</Link>
           {session ? (
             <>
-              <Link
-                href="/labs"
-                className="text-sm text-muted hover:text-foreground transition-colors"
-              >
-                Labs
-              </Link>
-              <Link
-                href="/leaderboard"
-                className="text-sm text-muted hover:text-foreground transition-colors"
-              >
-                Leaderboard
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-sm text-muted hover:text-foreground transition-colors"
-              >
-                Dashboard
+              <Link href="/dashboard" className="navbar-link">Dashboard</Link>
+              <Link href="/labs" className="btn btn-primary" style={{ minHeight: 36, padding: "0 16px", fontSize: 13 }}>
+                {session.user.displayName || session.user.name}
               </Link>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm text-muted hover:text-foreground">
-                Masuk
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 rounded-lg bg-violet text-white text-sm font-semibold hover:bg-violet-bright transition-colors"
-              >
-                Daftar
-              </Link>
+              <Link href="/login" className="navbar-link">Masuk</Link>
+              <Link href="/register" className="btn btn-primary" style={{ minHeight: 36, padding: "0 16px", fontSize: 13 }}>Daftar</Link>
             </>
           )}
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold font-display">Labs</h1>
-          <p className="text-muted mt-2">
-            Jelajahi dan selesaikan tantangan CTF
-          </p>
+      <main className="container" style={{ paddingBlock: "48px 80px" }}>
+        <div className="page-header">
+          <h1>Labs</h1>
+          <p>Jelajahi dan selesaikan tantangan CTF</p>
         </div>
 
-        <div className="bg-panel border border-line rounded-xl p-12 text-center">
-          <p className="text-muted mb-4">
-            Belum ada challenge yang dipublikasikan.
-          </p>
-          <p className="text-sm text-muted">
-            Admin akan segera menambahkan challenge pertama.
-          </p>
-        </div>
+        {allChallenges.length === 0 ? (
+          <div className="empty-state">
+            <p>Belum ada challenge yang dipublikasikan.</p>
+            {session?.user.role === "admin" && (
+              <Link href="/admin/challenges/new" className="btn btn-primary" style={{ marginTop: 16, display: "inline-flex" }}>
+                Buat Challenge
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+            {allChallenges.map((c) => (
+              <Link
+                key={c.id}
+                href={`/labs/${c.slug}`}
+                className="card category-card"
+                style={{ padding: 24, textDecoration: "none" }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                  <span className={`badge ${categoryColors[c.category] || "badge-violet"}`}>
+                    {c.category.toUpperCase()}
+                  </span>
+                  <span className={`badge ${c.difficulty === "easy" ? "badge-green" : c.difficulty === "medium" ? "badge-yellow" : c.difficulty === "hard" ? "badge-red" : "badge-violet"}`}>
+                    {c.difficulty}
+                  </span>
+                </div>
+                <h3 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>
+                  {c.title}
+                </h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--line)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--violet-bright)", fontWeight: 700 }}>
+                    {c.points} pts
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                    {c.solvedCount} solved
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

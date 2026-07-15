@@ -1,14 +1,30 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { challenges } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { redirect, notFound } from "next/navigation";
 import ChallengeForm from "../challenge-form";
 
-export default async function NewChallengePage() {
+export default async function EditChallengePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session || session.user.role !== "admin") redirect("/dashboard");
+
+  const [challenge] = await db
+    .select()
+    .from(challenges)
+    .where(eq(challenges.id, id))
+    .limit(1);
+
+  if (!challenge) notFound();
 
   return (
     <div className="dashboard-layout">
@@ -24,9 +40,22 @@ export default async function NewChallengePage() {
 
       <main className="dashboard-main">
         <div className="page-header">
-          <h1>New Challenge</h1>
+          <h1>Edit Challenge</h1>
+          <p>{challenge.title}</p>
         </div>
-        <ChallengeForm authorId={session.user.id} />
+        <ChallengeForm
+          authorId={session.user.id}
+          defaultValues={{
+            id: challenge.id,
+            title: challenge.title,
+            description: challenge.description,
+            category: challenge.category,
+            difficulty: challenge.difficulty,
+            points: challenge.points,
+            flagHint: challenge.flagHint || "",
+            isPublished: challenge.isPublished,
+          }}
+        />
       </main>
     </div>
   );

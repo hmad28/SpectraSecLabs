@@ -1,0 +1,10 @@
+feat: Google OAuth, login/register pages, domain setup
+
+- Tambah Google OAuth provider di Better Auth
+- Login & register pages with Google sign-in button
+- Redirect support (?redirect=/labs/...)
+- Domain: https://labs.spectrasec.xyz
+- Env vars for Google OAuth credentials
+- Login/register wrapped in Suspense for useSearchParams
+
+Co-authored-by: CommandCodeBot <noreply@commandcode.ai>
