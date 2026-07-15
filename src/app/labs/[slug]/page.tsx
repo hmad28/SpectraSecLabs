@@ -23,13 +23,13 @@ export default async function ChallengePage({ params }: { params: Promise<{ slug
       <SiteHeader active="labs" />
       <main className="section">
         <div className="container">
-          <Link href="/labs" className="back-link">← Kembali ke archive</Link>
+          <Link href="/labs" className="back-link">← Labs</Link>
           <div className="challenge-layout">
             <article className="challenge-body reveal">
               <div className="challenge-meta"><CategoryBadge category={challenge.category} /><DifficultyBadge difficulty={challenge.difficulty} /><span className="badge badge-violet">{challenge.points} PTS</span></div>
               <h1>{challenge.title}</h1>
               <div className="challenge-description">{challenge.description}</div>
-              {challenge.flagHint ? <aside className="hint"><strong>FLAG FORMAT</strong><span>{challenge.flagHint}</span></aside> : null}
+              {challenge.flagHint ? <aside className="hint"><strong>FLAG</strong><span>{challenge.flagHint}</span></aside> : null}
               {files.length ? <section className="challenge-files"><h2>Target & artifacts</h2>{files.map((file) => <a key={file.id} className="file-row" href={file.url} target="_blank" rel="noreferrer"><span>{file.name}</span><span>{file.size > 0 ? `${Math.max(1, Math.round(file.size / 1024))} KB` : "OPEN"} ↗</span></a>)}</section> : null}
             </article>
             <FlagSubmit challengeId={challenge.id} solvedCount={challenge.solvedCount} />

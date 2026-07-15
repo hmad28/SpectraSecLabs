@@ -12,11 +12,11 @@ export default async function LeaderboardPage() {
       <main className="section">
         <div className="container">
           <div className="section-head reveal">
-            <div><p className="eyebrow">COMMUNITY SIGNAL</p><h1>Leaderboard.</h1></div>
-            <p>Peringkat dihitung dari unique solve. Percobaan berulang tidak menambah poin.</p>
+            <div><p className="eyebrow">LEADERBOARD</p><h1>Rankings.</h1></div>
+            <p>Unique solves.</p>
           </div>
-          {topUsers.length ? <div className="table-wrapper reveal reveal-delay"><table><thead><tr><th>Rank</th><th>Player</th><th>Signal</th><th>Points</th></tr></thead><tbody>
-            {topUsers.map((user, index) => <tr key={user.id}><td><strong className="rank">#{String(index + 1).padStart(2, "0")}</strong></td><td>{user.displayName || user.name || "Player"}</td><td><span className="badge badge-cyan">VERIFIED</span></td><td><strong className="points">{user.totalPoints}</strong></td></tr>)}
+          {topUsers.length ? <div className="table-wrapper reveal reveal-delay"><table><thead><tr><th>Rank</th><th>Player</th><th>Points</th></tr></thead><tbody>
+            {topUsers.map((user, index) => <tr key={user.id}><td><strong className="rank">#{String(index + 1).padStart(2, "0")}</strong></td><td>{user.displayName || user.name || "Player"}</td><td><strong className="points">{user.totalPoints}</strong></td></tr>)}
           </tbody></table></div> : <div className="empty-state"><p>Belum ada solve. Jadilah pemain pertama di leaderboard.</p></div>}
         </div>
       </main>
