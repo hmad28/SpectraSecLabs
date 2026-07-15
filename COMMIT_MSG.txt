@@ -1,18 +1,10 @@
-chore: hallmark redesign — landing page, auth pages, design system
+fix: konsistensi tema — semua page pake token spectrasecweb
 
-Hallmark redesign:
-- Macrostructure: Ecosystem Index (#20) — dual-rail hero + category grid
-- Genre: atmospheric (dark cyber editorial)
-- Nav: N5 Floating pill
-- Footer: Ft5 Statement
-- Theme: Midnight (violet anchor, OKLCH tokens)
-- Full OKLCH colour palette with proper 4pt spacing scale
-- Login/register pages redesigned with proper CSS (fixes Tailwind phantom classes)
-- Created .hallmark/log.json for project memory
-
-Design tokens inlined in globals.css (no external import needed)
-Motion-cut: fade-only, no layout animations
-All tokens reference by name — no inline raw values
-Pre-emit critique: P5 H4 E5 S4 R5 V5
+- Unifikasi design system: semua page pake token yg sama
+  (--ink, --panel, --violet, --cyan, --muted, --line, --paper)
+- Landing page, login, register rewrite pake token konsisten
+- globals.css: spectrasecweb tokens + spacing scale + utility classes
+- Hapus OKLCH tokens dari Hallmark yg bikin page beda
+- Semua page konsisten dengan tema C:\Projects\spectrasecweb
 
 Co-authored-by: CommandCodeBot <noreply@commandcode.ai>

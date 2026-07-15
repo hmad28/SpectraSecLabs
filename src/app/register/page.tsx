@@ -16,27 +16,15 @@ function RegisterForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
+    setLoading(true); setError("");
     try {
       const res = await fetch("/api/auth/sign-up/email", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, callbackURL: redirect }),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || data.error || "Gagal mendaftar.");
-        setLoading(false);
-        return;
-      }
-      router.push(redirect);
-      router.refresh();
-    } catch {
-      setError("Gagal terhubung ke server. Coba lagi.");
-      setLoading(false);
-    }
+      if (!res.ok) { const d = await res.json(); setError(d.message || d.error || "Gagal mendaftar."); setLoading(false); return; }
+      router.push(redirect); router.refresh();
+    } catch { setError("Gagal terhubung ke server."); setLoading(false); }
   }
 
   async function handleGoogle() {
@@ -45,9 +33,9 @@ function RegisterForm() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider: "google", callbackURL: redirect }),
       });
-      const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
-      if (data.token) { router.push(redirect); router.refresh(); return; }
+      const d = await res.json();
+      if (d.url) { window.location.href = d.url; return; }
+      if (d.token) { router.push(redirect); router.refresh(); return; }
       setError("Login Google belum aktif.");
     } catch { setError("Gagal memulai login Google."); }
   }
@@ -57,30 +45,35 @@ function RegisterForm() {
       <div style={{ width: "100%", maxWidth: 380 }}>
         <div style={{ textAlign: "center", marginBottom: "var(--space-xl)" }}>
           <Link href="/" style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 22, display: "inline-block", marginBottom: "var(--space-lg)" }}>
-            SPECTRASEC<span style={{ color: "var(--color-accent)" }}>.LABS</span>
+            SPECTRASEC<span style={{ color: "var(--violet-bright)" }}>.LABS</span>
           </Link>
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-2xl)", fontWeight: 800, margin: 0, lineHeight: 1.1 }}>Daftar</h1>
-          <p style={{ color: "var(--color-muted)", fontSize: "var(--text-sm)", margin: "var(--space-2xs) 0 0" }}>Mulai perjalanan belajarmu</p>
+          <p style={{ color: "var(--muted)", fontSize: "var(--text-sm)", margin: "var(--space-2xs) 0 0" }}>Mulai perjalanan belajarmu</p>
         </div>
 
         <button onClick={handleGoogle}
           style={{
             width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--space-sm)",
-            padding: "10px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--color-rule)",
-            background: "var(--color-panel)", color: "var(--color-ink)", fontSize: "var(--text-sm)", fontWeight: 600, cursor: "pointer",
+            padding: "10px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--line)",
+            background: "var(--panel)", color: "var(--paper)", fontSize: "var(--text-sm)", fontWeight: 600, cursor: "pointer",
             transition: "background .15s, border-color .15s",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--color-panel-2)"; e.currentTarget.style.borderColor = "var(--color-accent)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "var(--color-panel)"; e.currentTarget.style.borderColor = "var(--color-rule)"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "var(--panel-2)"; e.currentTarget.style.borderColor = "var(--violet)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "var(--panel)"; e.currentTarget.style.borderColor = "var(--line)"; }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
           Daftar dengan Google
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", margin: "var(--space-lg) 0" }}>
-          <div style={{ flex: 1, height: 1, background: "var(--color-rule)" }} />
-          <span style={{ color: "var(--color-neutral)", fontSize: "var(--text-xs)", fontFamily: "var(--font-mono)" }}>atau</span>
-          <div style={{ flex: 1, height: 1, background: "var(--color-rule)" }} />
+          <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
+          <span style={{ color: "var(--muted)", fontSize: "var(--text-xs)", fontFamily: "var(--font-mono)" }}>atau</span>
+          <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
@@ -96,21 +89,19 @@ function RegisterForm() {
             <label htmlFor="password" style={{ display: "block", fontSize: "var(--text-sm)", fontWeight: 600, marginBottom: "var(--space-2xs)" }}>Password</label>
             <input id="password" type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} className="input" placeholder="Min. 6 karakter" disabled={loading} />
           </div>
-
           {error && (
-            <div style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", background: "oklch(55% 0.16 25 / 0.12)", border: "1px solid oklch(55% 0.16 25 / 0.25)", color: "oklch(65% 0.18 25)", fontSize: "var(--text-sm)", textAlign: "center" }}>
+            <div style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.25)", color: "var(--red)", fontSize: "var(--text-sm)", textAlign: "center" }}>
               {error}
             </div>
           )}
-
           <button type="submit" className="btn btn-primary" style={{ justifyContent: "center", width: "100%" }} disabled={loading}>
             {loading ? "Memproses..." : "Daftar"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", color: "var(--color-muted)", fontSize: "var(--text-sm)", marginTop: "var(--space-lg)" }}>
+        <p style={{ textAlign: "center", color: "var(--muted)", fontSize: "var(--text-sm)", marginTop: "var(--space-lg)" }}>
           Sudah punya akun?{" "}
-          <Link href="/login" style={{ color: "oklch(75% 0.16 190)", textDecoration: "underline", textUnderlineOffset: 3 }}>Masuk</Link>
+          <Link href="/login" style={{ color: "var(--cyan)", textDecoration: "underline", textUnderlineOffset: 3 }}>Masuk</Link>
         </p>
       </div>
     </div>
@@ -119,7 +110,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-muted)" }}>Loading…</div>}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)" }}>Loading&hellip;</div>}>
       <RegisterForm />
     </Suspense>
   );

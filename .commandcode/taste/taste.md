@@ -17,3 +17,6 @@
 # dependencies
 - Use latest versions of dependencies, not pinned versions. Confidence: 0.70
 
+# theme
+- Maintain consistent visual theme across all pages, matching existing project styles (spectrasecweb). Confidence: 0.65
+
