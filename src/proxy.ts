@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
-const publicExactPages = new Set(["/", "/login", "/register", "/labs", "/leaderboard"]);
+const publicExactPages = new Set(["/", "/login", "/register", "/verify-email", "/forgot-password", "/labs", "/leaderboard"]);
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -31,4 +31,3 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
-

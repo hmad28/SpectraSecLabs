@@ -8,9 +8,10 @@ import { safeRedirectPath } from "@/lib/validation";
 
 function LoginForm() {
   const router = useRouter();
-  const redirectParam = useSearchParams().get("redirect");
+  const params = useSearchParams();
+  const redirectParam = params.get("redirect");
   const redirect = safeRedirectPath(redirectParam, "/dashboard");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(params.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,12 @@ function LoginForm() {
     event.preventDefault(); setLoading(true); setError("");
     try {
       const response = await fetch("/api/auth/sign-in/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, callbackURL: redirect }) });
-      if (!response.ok) { const data = await response.json(); setError(data.message || "Email atau password salah."); return; }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message = data.message || "Email atau password salah.";
+        setError(response.status === 403 ? "Email belum diverifikasi. Buka /verify-email untuk ambil OTP." : message);
+        return;
+      }
       if (redirectParam) {
         router.push(redirect);
         router.refresh();
@@ -29,7 +35,9 @@ function LoginForm() {
       const session = sessionResponse.ok ? await sessionResponse.json() as { user?: { role?: string } } | null : null;
       router.push(session?.user?.role === "admin" ? "/admin" : redirect);
       router.refresh();
-    } catch { setError("Tidak dapat terhubung ke server."); } finally { setLoading(false); }
+    } catch {
+      setError("Tidak dapat terhubung ke server.");
+    } finally { setLoading(false); }
   }
 
   async function google() {
@@ -42,17 +50,17 @@ function LoginForm() {
   }
 
   return <main className="auth-page">
-    <section className="auth-visual"><Image src="/images/spectrasec-hero-terminal.svg" alt="" fill priority sizes="(max-width: 980px) 100vw, 58vw" /><div className="auth-visual-copy"><p className="eyebrow">PLAYER ACCESS</p><h2>Reconnect<br />to range.</h2></div></section>
+    <section className="auth-visual"><Image src="/images/spectrasec-hero-terminal.svg" alt="" fill priority sizes="(max-width: 980px) 100vw, 58vw" /><div className="auth-visual-copy"><p className="eyebrow">PLAYER ACCESS</p><h2>Reconnect.<br />Rebuild.<br />Return.</h2></div></section>
     <section className="auth-panel"><div className="auth-form reveal">
       <Link href="/" className="brand"><Image src="/images/spectrasec-logo.jpg" alt="" width={40} height={40} className="brand-logo" /><span>SPECTRASEC<span>.LABS</span></span></Link>
       <h1>Masuk.</h1><p>Lanjutkan solve, submit flag, dan cek signal kamu di leaderboard.</p>
       <button type="button" className="btn btn-ghost auth-social" onClick={google}>Lanjutkan dengan Google</button>
       <div className="auth-divider">ATAU EMAIL</div>
       <form onSubmit={submit}><div className="form-group"><label className="form-label" htmlFor="email">Email</label><input className="input" id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></div><div className="form-group"><label className="form-label" htmlFor="password">Password</label><input className="input" id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></div>{error ? <div className="form-message">{error}</div> : null}<button className="btn btn-primary auth-submit" disabled={loading}>{loading ? "Memproses..." : "Masuk →"}</button></form>
+      <p className="auth-switch"><Link href="/verify-email">Verifikasi email</Link> · <Link href="/forgot-password">Lupa password</Link></p>
       <p className="auth-switch">Belum punya akun? <Link href="/register">Daftar sekarang</Link></p>
     </div></section>
   </main>;
 }
 
 export default function LoginPage() { return <Suspense><LoginForm /></Suspense>; }
-

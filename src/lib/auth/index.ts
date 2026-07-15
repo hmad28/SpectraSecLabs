@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
+import { emailOTP } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
+import { sendAuthOtpEmail } from "@/lib/email";
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -10,10 +12,25 @@ export const auth = betterAuth({
     provider: "pg",
     usePlural: true,
   }),
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    emailOTP({
+      sendVerificationOTP: async ({ email, otp, type }) => {
+        await sendAuthOtpEmail({ email, otp, type });
+      },
+      sendVerificationOnSignUp: true,
+      overrideDefaultEmailVerification: true,
+      changeEmail: { enabled: true, verifyCurrentEmail: true },
+      resendStrategy: "reuse",
+      allowedAttempts: 5,
+      expiresIn: 600,
+      storeOTP: "plain",
+    }),
+  ],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    requireEmailVerification: true,
   },
   rateLimit: { enabled: true, window: 60, max: 20 },
   socialProviders: {
