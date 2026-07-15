@@ -56,9 +56,8 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     }
     setPasswordStatus("saving");
     setPasswordMessage("");
-    const path = hasPassword ? "/api/auth/change-password" : "/api/auth/set-password";
-    const body = hasPassword ? { currentPassword, newPassword, revokeOtherSessions: true } : { newPassword };
-    const { response, data } = await postJson(path, body);
+    const body = hasPassword ? { currentPassword, newPassword } : { newPassword };
+    const { response, data } = await postJson("/api/users/password", body);
     if (!response.ok) {
       setPasswordStatus("error");
       setPasswordMessage(data.message || data.error || "Gagal menyimpan password");
@@ -138,3 +137,4 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     </div>
   </div>;
 }
+
