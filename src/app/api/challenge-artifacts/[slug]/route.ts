@@ -1,5 +1,10 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 import { findChallengeBlueprintBySlug } from "@/lib/challenge-blueprints";
+import { db } from "@/lib/db";
+import { challenges } from "@/lib/db/schema";
 
 function encodedFlag(flag: string) {
   return Buffer.from(flag, "utf8").toString("base64");
@@ -148,7 +153,17 @@ function contentTypeFor(filename: string) {
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { slug } = await params;
+  const [challenge] = await db.select({ isPublished: challenges.isPublished }).from(challenges).where(eq(challenges.slug, slug)).limit(1);
+  if (!challenge || (!challenge.isPublished && session.user.role !== "admin")) {
+    return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
+  }
+
   const blueprint = findChallengeBlueprintBySlug(slug);
   if (!blueprint) {
     return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
@@ -160,7 +175,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     headers: {
       "Content-Type": contentTypeFor(filename),
       "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "public, max-age=3600, s-maxage=86400",
+      "Cache-Control": "private, no-store",
     },
   });
 }
+

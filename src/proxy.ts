@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
-const publicPages = ["/login", "/register", "/labs", "/leaderboard", "/"];
+const publicExactPages = new Set(["/", "/login", "/register", "/labs", "/leaderboard"]);
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isPublicPage = publicPages.some((path) => pathname === path || (path !== "/" && pathname.startsWith(`${path}/`)));
-  const isPublicReadApi = request.method === "GET" && (pathname === "/api/challenges" || pathname === "/api/users" || pathname.startsWith("/api/challenge-artifacts/"));
+  const isPublicPage = publicExactPages.has(pathname);
+  const isPublicReadApi = request.method === "GET" && (pathname === "/api/challenges" || pathname === "/api/users");
   const isChallengeTarget = pathname.startsWith("/targets/");
   const isFrameworkRoute = pathname.startsWith("/_next") || pathname.startsWith("/favicon") || pathname.startsWith("/images");
   const isAuthRoute = pathname.startsWith("/api/auth");
@@ -21,6 +21,9 @@ export default async function proxy(request: NextRequest) {
     loginUrl.searchParams.set("redirect", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
+  if ((pathname === "/login" || pathname === "/register") && session) {
+    return NextResponse.redirect(new URL(session.user.role === "admin" ? "/admin" : "/dashboard", request.url));
+  }
   if (pathname.startsWith("/admin") && session.user.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
@@ -28,3 +31,4 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
+
