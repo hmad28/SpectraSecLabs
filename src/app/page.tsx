@@ -70,7 +70,6 @@ export default async function Home() {
               </div>
             </aside>
           </div>
-          <div className="hero-status"><span><i className="signal-dot" />ONLINE</span><span>NEON POSTGRES</span><span>UPLOAD FILES</span></div>
         </section>
 
         <section className="section">
