@@ -8,7 +8,8 @@ import { safeRedirectPath } from "@/lib/validation";
 
 function LoginForm() {
   const router = useRouter();
-  const redirect = safeRedirectPath(useSearchParams().get("redirect"));
+  const redirectParam = useSearchParams().get("redirect");
+  const redirect = safeRedirectPath(redirectParam, "/dashboard");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +20,15 @@ function LoginForm() {
     try {
       const response = await fetch("/api/auth/sign-in/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, callbackURL: redirect }) });
       if (!response.ok) { const data = await response.json(); setError(data.message || "Email atau password salah."); return; }
-      router.push(redirect); router.refresh();
+      if (redirectParam) {
+        router.push(redirect);
+        router.refresh();
+        return;
+      }
+      const sessionResponse = await fetch("/api/auth/get-session");
+      const session = sessionResponse.ok ? await sessionResponse.json() as { user?: { role?: string } } | null : null;
+      router.push(session?.user?.role === "admin" ? "/admin" : redirect);
+      router.refresh();
     } catch { setError("Tidak dapat terhubung ke server."); } finally { setLoading(false); }
   }
 
@@ -46,3 +55,4 @@ function LoginForm() {
 }
 
 export default function LoginPage() { return <Suspense><LoginForm /></Suspense>; }
+
