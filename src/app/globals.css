@@ -129,6 +129,18 @@ img { display: block; max-width: 100%; }
 .skeleton-card, .skeleton-line, .skeleton-filter { position: relative; overflow: hidden; background: color-mix(in oklch, var(--color-panel) 58%, transparent); }
 .skeleton-line { display: block; height: 18px; border: 1px solid var(--color-line); }
 .skeleton-line.wide { width: min(100%, 440px); }
+.skeleton-line.title { width: min(100%, 320px); height: 54px; margin: 22px 0 18px; }
+.skeleton-line.short { width: min(100%, 180px); }
+.skeleton-line.tiny { width: min(100%, 220px); }
+.skeleton-line.inline { width: 90px; height: 10px; }
+.skeleton-line.files-title { width: 180px; height: 22px; margin-bottom: 14px; }
+.skeleton-line.submit-title { width: 160px; height: 24px; margin: 0 0 14px; }
+.skeleton-pill { display: inline-block; width: 72px; height: 22px; border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: color-mix(in oklch, var(--color-panel) 58%, transparent); }
+.skeleton-pill.small { width: 48px; }
+.challenge-skeleton-copy { display: grid; gap: 12px; max-width: 720px; }
+.skeleton-row { min-height: 48px; border: 1px solid var(--color-line); }
+.skeleton-submit { display: grid; gap: 12px; align-content: start; }
+.skeleton-submit .button { width: 100%; height: 46px; margin-top: 8px; }
 .skeleton-filter { min-height: 78px; }
 .skeleton-card::after, .skeleton-line::after, .skeleton-filter::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--color-violet) 20%, transparent), transparent); animation: shimmer 1.1s infinite; }
 .empty-action { margin-top: 20px; }
