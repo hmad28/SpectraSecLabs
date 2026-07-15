@@ -94,7 +94,7 @@ export default async function Home() {
         <section className="section">
           <div className="wide-container">
             <div className="section-head">
-              <div><p className="eyebrow">ATTACK MATRIX</p><h2>35 seeded labs.<br />7 attack surfaces.</h2></div>
+              <div><p className="eyebrow">ATTACK MATRIX</p><h2>40 seeded labs.<br />8 attack surfaces.</h2></div>
               <p>Setiap track disiapkan 5 challenge: 2 easy, 2 medium, dan 1 high yang dipetakan sebagai hard di schema platform.</p>
             </div>
             <div className="track-grid">

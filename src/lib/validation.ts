@@ -1,4 +1,4 @@
-export const challengeCategories = ["web", "crypto", "forensic", "osint", "reversing", "pwn", "misc"] as const;
+export const challengeCategories = ["web", "crypto", "forensic", "osint", "reversing", "pwn", "stego", "misc"] as const;
 export const challengeDifficulties = ["easy", "medium", "hard", "insane"] as const;
 
 function oneOf<T extends readonly string[]>(value: unknown, allowed: T): value is T[number] {
@@ -28,7 +28,7 @@ export function parseChallengeInput(value: unknown, requireFlag: boolean) {
     const item = file as Record<string, unknown>;
     const size = Number(item.size);
     const url = requiredText(item.url, "URL file", 2048);
-    if (!url.startsWith("https://")) throw new Error("URL file tidak valid");
+    if (!url.startsWith("https://") && !url.startsWith("/")) throw new Error("URL file tidak valid");
     if (!Number.isInteger(size) || size < 0 || size > 32 * 1024 * 1024) throw new Error("Ukuran file tidak valid");
     return { name: requiredText(item.name, "Nama file", 255), key: requiredText(item.key, "Storage key", 255), url, size };
   });

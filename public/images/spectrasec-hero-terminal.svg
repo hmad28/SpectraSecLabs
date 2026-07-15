@@ -1,42 +1,42 @@
 <svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1920" height="1080" fill="#06110E"/>
+  <rect width="1920" height="1080" fill="#100A1F"/>
   <g opacity="0.18">
-    <path d="M0 120H1920M0 240H1920M0 360H1920M0 480H1920M0 600H1920M0 720H1920M0 840H1920M0 960H1920" stroke="#36F7B2"/>
-    <path d="M120 0V1080M240 0V1080M360 0V1080M480 0V1080M600 0V1080M720 0V1080M840 0V1080M960 0V1080M1080 0V1080M1200 0V1080M1320 0V1080M1440 0V1080M1560 0V1080M1680 0V1080M1800 0V1080" stroke="#1F8DFF"/>
+    <path d="M0 120H1920M0 240H1920M0 360H1920M0 480H1920M0 600H1920M0 720H1920M0 840H1920M0 960H1920" stroke="#B77CFF"/>
+    <path d="M120 0V1080M240 0V1080M360 0V1080M480 0V1080M600 0V1080M720 0V1080M840 0V1080M960 0V1080M1080 0V1080M1200 0V1080M1320 0V1080M1440 0V1080M1560 0V1080M1680 0V1080M1800 0V1080" stroke="#70D6FF"/>
   </g>
   <g opacity="0.22">
-    <rect x="1160" y="120" width="540" height="710" stroke="#36F7B2" stroke-width="2"/>
-    <path d="M1160 178H1700" stroke="#36F7B2" stroke-width="2"/>
-    <circle cx="1204" cy="149" r="7" fill="#E7FF6E"/>
-    <circle cx="1232" cy="149" r="7" fill="#36F7B2"/>
-    <circle cx="1260" cy="149" r="7" fill="#1F8DFF"/>
-    <path d="M1212 232H1608M1212 286H1514M1212 340H1648M1212 394H1460M1212 448H1585M1212 502H1530M1212 556H1620M1212 610H1494M1212 664H1660M1212 718H1560" stroke="#C9F7E8" stroke-width="12" stroke-linecap="square"/>
-    <path d="M1212 232H1358M1212 340H1396M1212 502H1320M1212 664H1448" stroke="#36F7B2" stroke-width="12" stroke-linecap="square"/>
+    <rect x="1160" y="120" width="540" height="710" stroke="#B77CFF" stroke-width="2"/>
+    <path d="M1160 178H1700" stroke="#B77CFF" stroke-width="2"/>
+    <circle cx="1204" cy="149" r="7" fill="#FFCB6B"/>
+    <circle cx="1232" cy="149" r="7" fill="#B77CFF"/>
+    <circle cx="1260" cy="149" r="7" fill="#70D6FF"/>
+    <path d="M1212 232H1608M1212 286H1514M1212 340H1648M1212 394H1460M1212 448H1585M1212 502H1530M1212 556H1620M1212 610H1494M1212 664H1660M1212 718H1560" stroke="#F1E8FF" stroke-width="12" stroke-linecap="square"/>
+    <path d="M1212 232H1358M1212 340H1396M1212 502H1320M1212 664H1448" stroke="#B77CFF" stroke-width="12" stroke-linecap="square"/>
   </g>
   <g opacity="0.55">
-    <path d="M176 790L382 585L577 672L768 468L936 536L1134 322" stroke="#36F7B2" stroke-width="4"/>
-    <path d="M176 856L356 706L520 748L704 612L924 692L1088 548" stroke="#1F8DFF" stroke-width="3"/>
-    <circle cx="382" cy="585" r="10" fill="#36F7B2"/>
-    <circle cx="768" cy="468" r="10" fill="#36F7B2"/>
-    <circle cx="1134" cy="322" r="10" fill="#36F7B2"/>
-    <circle cx="704" cy="612" r="8" fill="#1F8DFF"/>
-    <circle cx="1088" cy="548" r="8" fill="#1F8DFF"/>
+    <path d="M176 790L382 585L577 672L768 468L936 536L1134 322" stroke="#B77CFF" stroke-width="4"/>
+    <path d="M176 856L356 706L520 748L704 612L924 692L1088 548" stroke="#70D6FF" stroke-width="3"/>
+    <circle cx="382" cy="585" r="10" fill="#B77CFF"/>
+    <circle cx="768" cy="468" r="10" fill="#B77CFF"/>
+    <circle cx="1134" cy="322" r="10" fill="#B77CFF"/>
+    <circle cx="704" cy="612" r="8" fill="#70D6FF"/>
+    <circle cx="1088" cy="548" r="8" fill="#70D6FF"/>
   </g>
-  <g opacity="0.75" font-family="JetBrains Mono, monospace" font-size="28" fill="#36F7B2">
+  <g opacity="0.75" font-family="JetBrains Mono, monospace" font-size="28" fill="#B77CFF">
     <text x="150" y="192">$ nmap -sV labs.spectrasec.xyz</text>
     <text x="150" y="246">443/tcp open https   spectra-lab-gateway</text>
     <text x="150" y="300">22/tcp  filtered      operator-only</text>
     <text x="150" y="354">status: authorized challenge network</text>
   </g>
-  <g opacity="0.28" font-family="JetBrains Mono, monospace" font-size="20" fill="#C9F7E8">
+  <g opacity="0.28" font-family="JetBrains Mono, monospace" font-size="20" fill="#F1E8FF">
     <text x="1420" y="920">0x53 0x50 0x45 0x43 0x54 0x52 0x41</text>
     <text x="1420" y="952">signal: verified | scope: legal | mode: ctf</text>
   </g>
   <path d="M0 0H1920V1080H0V0Z" fill="url(#vignette)"/>
   <defs>
     <radialGradient id="vignette" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1280 310) rotate(127) scale(975 1315)">
-      <stop stop-color="#36F7B2" stop-opacity="0.12"/>
-      <stop offset="0.38" stop-color="#06110E" stop-opacity="0"/>
+      <stop stop-color="#B77CFF" stop-opacity="0.12"/>
+      <stop offset="0.38" stop-color="#100A1F" stop-opacity="0"/>
       <stop offset="1" stop-color="#000000" stop-opacity="0.8"/>
     </radialGradient>
   </defs>

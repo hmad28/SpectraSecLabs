@@ -7,15 +7,7 @@ import { nanoid } from "nanoid";
 import { hashPassword } from "better-auth/crypto";
 import bcrypt from "bcryptjs";
 import * as schema from "../src/lib/db/schema";
-import { challengeBlueprints } from "../src/lib/challenge-blueprints";
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
+import { challengeBlueprints, challengeSlug } from "../src/lib/challenge-blueprints";
 
 async function seed() {
   const url = process.env.DATABASE_URL;
@@ -84,7 +76,7 @@ async function seed() {
   }
 
   for (const challenge of challengeBlueprints) {
-    const slug = `${challenge.category}-${slugify(challenge.title)}`;
+    const slug = challengeSlug(challenge.title, challenge.category);
     const existingChallenge = await db
       .select({ id: schema.challenges.id })
       .from(schema.challenges)
@@ -104,11 +96,21 @@ async function seed() {
         isPublished: true,
         updatedAt: now,
       }).where(eq(schema.challenges.id, existingChallenge[0].id));
+      await db.delete(schema.challengeFiles).where(eq(schema.challengeFiles.challengeId, existingChallenge[0].id));
+      await db.insert(schema.challengeFiles).values(challenge.resources.map((resource) => ({
+        id: nanoid(),
+        challengeId: existingChallenge[0].id,
+        name: resource.name,
+        storageKey: `seed:${slug}:${resource.kind}`,
+        url: resource.path,
+        size: resource.size,
+      })));
       continue;
     }
 
+    const challengeId = nanoid();
     await db.insert(schema.challenges).values({
-      id: nanoid(),
+      id: challengeId,
       title: challenge.title,
       slug,
       description: challenge.description,
@@ -123,6 +125,14 @@ async function seed() {
       createdAt: now,
       updatedAt: now,
     });
+    await db.insert(schema.challengeFiles).values(challenge.resources.map((resource) => ({
+      id: nanoid(),
+      challengeId,
+      name: resource.name,
+      storageKey: `seed:${slug}:${resource.kind}`,
+      url: resource.path,
+      size: resource.size,
+    })));
   }
 
   console.log(`Super admin ${email} is ready.`);

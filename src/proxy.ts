@@ -6,12 +6,13 @@ const publicPages = ["/login", "/register", "/labs", "/leaderboard", "/"];
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicPage = publicPages.some((path) => pathname === path || (path !== "/" && pathname.startsWith(`${path}/`)));
-  const isPublicReadApi = request.method === "GET" && (pathname === "/api/challenges" || pathname === "/api/users");
+  const isPublicReadApi = request.method === "GET" && (pathname === "/api/challenges" || pathname === "/api/users" || pathname.startsWith("/api/challenge-artifacts/"));
+  const isChallengeTarget = pathname.startsWith("/targets/");
   const isFrameworkRoute = pathname.startsWith("/_next") || pathname.startsWith("/favicon") || pathname.startsWith("/images");
   const isAuthRoute = pathname.startsWith("/api/auth");
   const isUploadRoute = pathname.startsWith("/api/uploadthing");
 
-  if (isFrameworkRoute || isAuthRoute || isUploadRoute || isPublicReadApi) return NextResponse.next();
+  if (isFrameworkRoute || isAuthRoute || isUploadRoute || isPublicReadApi || isChallengeTarget) return NextResponse.next();
 
   const session = await auth.api.getSession({ headers: request.headers }).catch(() => null);
   if (!session && isPublicPage) return NextResponse.next();

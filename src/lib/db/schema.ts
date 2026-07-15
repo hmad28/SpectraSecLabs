@@ -7,6 +7,7 @@ export const categoryEnum = pgEnum("category", [
   "osint",
   "reversing",
   "pwn",
+  "stego",
   "misc",
 ]);
 

@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { CategoryBadge, DifficultyBadge } from "@/components/category-badge";
 import { PublicHeader } from "@/components/public-header";
 import { db } from "@/lib/db";
 import { challenges } from "@/lib/db/schema";
 import { challengeCategories, challengeDifficulties } from "@/lib/validation";
 
-export default async function LabsPage({ searchParams }: { searchParams: Promise<{ category?: string; difficulty?: string }> }) {
+export default async function LabsPage({ searchParams }: { searchParams: Promise<{ category?: string; difficulty?: string; q?: string }> }) {
   const filters = await searchParams;
   const category = challengeCategories.includes(filters.category as never) ? filters.category : undefined;
   const difficulty = challengeDifficulties.includes(filters.difficulty as never) ? filters.difficulty : undefined;
+  const search = typeof filters.q === "string" ? filters.q.trim().slice(0, 80) : "";
   const conditions = [eq(challenges.isPublished, true)];
   if (category) conditions.push(eq(challenges.category, category as never));
   if (difficulty) conditions.push(eq(challenges.difficulty, difficulty as never));
+  if (search) conditions.push(or(ilike(challenges.title, `%${search}%`), ilike(challenges.description, `%${search}%`))!);
   const allChallenges = await db.select({
     id: challenges.id, title: challenges.title, slug: challenges.slug, description: challenges.description,
     category: challenges.category, difficulty: challenges.difficulty, points: challenges.points, solvedCount: challenges.solvedCount,
@@ -23,7 +25,8 @@ export default async function LabsPage({ searchParams }: { searchParams: Promise
     ["Medium", allChallenges.filter((item) => item.difficulty === "medium").length],
     ["High", allChallenges.filter((item) => item.difficulty === "hard").length],
   ] as const;
-  const categoryQuery = category ? `category=${category}` : "";
+  const preservedDifficulty = difficulty ? `difficulty=${difficulty}` : "";
+  const preservedSearch = search ? `q=${encodeURIComponent(search)}` : "";
 
   return (
     <>
@@ -37,18 +40,19 @@ export default async function LabsPage({ searchParams }: { searchParams: Promise
           <div className="lab-summary-grid">
             {totals.map(([label, value], index) => <article key={label}><span>0{index + 1}</span><strong>{value}</strong><p>{label}</p></article>)}
           </div>
-          <nav className="filter-bar filter-stack" aria-label="Filter challenge">
-            <Link href={difficulty ? `/labs?difficulty=${difficulty}` : "/labs"} data-active={!category}>ALL TRACKS</Link>
-            {challengeCategories.map((item) => <Link key={item} href={`/labs?category=${item}`} data-active={category === item}>{item.toUpperCase()}</Link>)}
-          </nav>
-          <nav className="filter-bar" aria-label="Filter difficulty">
-            <Link href={category ? `/labs?${categoryQuery}` : "/labs"} data-active={!difficulty}>ALL LEVELS</Link>
-            {challengeDifficulties.filter((item) => item !== "insane").map((item) => (
-              <Link key={item} href={`/labs?${[categoryQuery, `difficulty=${item}`].filter(Boolean).join("&")}`} data-active={difficulty === item}>
-                {item === "hard" ? "HIGH" : item.toUpperCase()}
-              </Link>
-            ))}
-          </nav>
+          <form className="lab-filter-panel" action="/labs">
+            <label><span>Search</span><input className="input" name="q" placeholder="Search challenge, vuln, file..." defaultValue={search} /></label>
+            <label><span>Category</span><select className="form-select" name="category" defaultValue={category ?? ""}><option value="">All tracks</option>{challengeCategories.map((item) => <option key={item} value={item}>{item.toUpperCase()}</option>)}</select></label>
+            <label><span>Difficulty</span><select className="form-select" name="difficulty" defaultValue={difficulty ?? ""}><option value="">All levels</option>{challengeDifficulties.filter((item) => item !== "insane").map((item) => <option key={item} value={item}>{item === "hard" ? "HIGH" : item.toUpperCase()}</option>)}</select></label>
+            <button className="btn btn-primary" type="submit">Apply</button>
+            <Link className="btn btn-ghost" href="/labs">Reset</Link>
+          </form>
+          <div className="active-filter-line">
+            <span>{category ? category.toUpperCase() : "ALL TRACKS"}</span>
+            <span>{difficulty ? (difficulty === "hard" ? "HIGH" : difficulty.toUpperCase()) : "ALL LEVELS"}</span>
+            {search ? <span>QUERY: {search}</span> : null}
+            {category ? <Link href={`/labs?${[preservedDifficulty, preservedSearch].filter(Boolean).join("&")}`}>clear category</Link> : null}
+          </div>
           {allChallenges.length ? (
             <div className="challenge-grid reveal reveal-delay">
               {allChallenges.map((challenge, index) => (

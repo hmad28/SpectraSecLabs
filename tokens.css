@@ -1,14 +1,14 @@
 :root {
-  --color-ink: oklch(10% 0.025 160);
-  --color-ink-soft: oklch(14% 0.035 165);
-  --color-panel: oklch(17% 0.045 165);
-  --color-panel-raised: oklch(21% 0.06 165);
-  --color-violet: oklch(72% 0.19 158);
-  --color-violet-bright: oklch(85% 0.17 160);
-  --color-cyan: oklch(83% 0.14 210);
-  --color-paper: oklch(96% 0.015 150);
-  --color-muted: oklch(75% 0.035 165);
-  --color-line: oklch(92% 0.03 165 / 0.15);
+  --color-ink: oklch(11% 0.032 292);
+  --color-ink-soft: oklch(15% 0.045 292);
+  --color-panel: oklch(18% 0.055 292);
+  --color-panel-raised: oklch(23% 0.07 292);
+  --color-violet: oklch(68% 0.23 302);
+  --color-violet-bright: oklch(80% 0.2 306);
+  --color-cyan: oklch(83% 0.13 205);
+  --color-paper: oklch(96% 0.014 292);
+  --color-muted: oklch(76% 0.034 292);
+  --color-line: oklch(92% 0.025 292 / 0.15);
   --color-danger: oklch(66% 0.2 25);
   --color-success: oklch(76% 0.17 150);
   --color-warning: oklch(82% 0.16 85);
