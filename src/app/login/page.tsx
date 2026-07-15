@@ -33,10 +33,10 @@ function LoginForm() {
   }
 
   return <main className="auth-page">
-    <section className="auth-visual"><Image src="/images/spectrasec-hero.webp" alt="" fill priority sizes="(max-width: 980px) 100vw, 58vw" /><div className="auth-visual-copy"><p className="eyebrow">PLAYER ACCESS</p><h2>Return to<br />the signal.</h2></div></section>
+    <section className="auth-visual"><Image src="/images/spectrasec-hero-terminal.svg" alt="" fill priority sizes="(max-width: 980px) 100vw, 58vw" /><div className="auth-visual-copy"><p className="eyebrow">PLAYER ACCESS</p><h2>Reconnect<br />to range.</h2></div></section>
     <section className="auth-panel"><div className="auth-form reveal">
       <Link href="/" className="brand"><Image src="/images/spectrasec-logo.jpg" alt="" width={40} height={40} className="brand-logo" /><span>SPECTRASEC<span>.LABS</span></span></Link>
-      <h1>Masuk.</h1><p>Lanjutkan progres dan challenge-mu.</p>
+      <h1>Masuk.</h1><p>Lanjutkan solve, submit flag, dan cek signal kamu di leaderboard.</p>
       <button type="button" className="btn btn-ghost auth-social" onClick={google}>Lanjutkan dengan Google</button>
       <div className="auth-divider">ATAU EMAIL</div>
       <form onSubmit={submit}><div className="form-group"><label className="form-label" htmlFor="email">Email</label><input className="input" id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></div><div className="form-group"><label className="form-label" htmlFor="password">Password</label><input className="input" id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></div>{error ? <div className="form-message">{error}</div> : null}<button className="btn btn-primary auth-submit" disabled={loading}>{loading ? "Memproses..." : "Masuk →"}</button></form>

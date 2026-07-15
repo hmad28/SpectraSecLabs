@@ -5,7 +5,17 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { hashPassword } from "better-auth/crypto";
+import bcrypt from "bcryptjs";
 import * as schema from "../src/lib/db/schema";
+import { challengeBlueprints } from "../src/lib/challenge-blueprints";
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 async function seed() {
   const url = process.env.DATABASE_URL;
@@ -19,6 +29,7 @@ async function seed() {
 
   const email = process.env.SUPER_ADMIN_EMAIL || "admin@spectrasec.id";
   const password = process.env.SUPER_ADMIN_PASSWORD;
+  let username = email.split("@")[0] || "admin";
 
   if (!password) {
     console.error("SUPER_ADMIN_PASSWORD is required");
@@ -39,10 +50,19 @@ async function seed() {
   if (existing.length) {
     await db.update(schema.users).set({ name: "Super Admin", displayName: "Super Admin", role: "admin", updatedAt: now }).where(eq(schema.users.id, userId));
   } else {
+    const usernameOwner = await db.select({ id: schema.users.id }).from(schema.users)
+      .where(eq(schema.users.username, username)).limit(1);
+    if (usernameOwner.length) {
+      username = `${username}-spectrasec`;
+      const fallbackOwner = await db.select({ id: schema.users.id }).from(schema.users)
+        .where(eq(schema.users.username, username)).limit(1);
+      if (fallbackOwner.length) username = `${username}-${nanoid(4)}`;
+    }
+
     await db.insert(schema.users).values({
       id: userId,
       name: "Super Admin",
-      username: email.split("@")[0],
+      username,
       email,
       emailVerified: true,
       displayName: "Super Admin",
@@ -60,6 +80,48 @@ async function seed() {
   } else {
     await db.insert(schema.accounts).values({
       id: nanoid(), userId, accountId: userId, providerId: "credential", password: passwordHash, createdAt: now, updatedAt: now,
+    });
+  }
+
+  for (const challenge of challengeBlueprints) {
+    const slug = `${challenge.category}-${slugify(challenge.title)}`;
+    const existingChallenge = await db
+      .select({ id: schema.challenges.id })
+      .from(schema.challenges)
+      .where(eq(schema.challenges.slug, slug))
+      .limit(1);
+
+    if (existingChallenge.length) {
+      await db.update(schema.challenges).set({
+        title: challenge.title,
+        description: challenge.description,
+        category: challenge.category,
+        difficulty: challenge.difficulty,
+        points: challenge.points,
+        flagHash: await bcrypt.hash(challenge.flag, 12),
+        flagHint: challenge.flagHint,
+        authorId: userId,
+        isPublished: true,
+        updatedAt: now,
+      }).where(eq(schema.challenges.id, existingChallenge[0].id));
+      continue;
+    }
+
+    await db.insert(schema.challenges).values({
+      id: nanoid(),
+      title: challenge.title,
+      slug,
+      description: challenge.description,
+      category: challenge.category,
+      difficulty: challenge.difficulty,
+      points: challenge.points,
+      flagHash: await bcrypt.hash(challenge.flag, 12),
+      flagHint: challenge.flagHint,
+      authorId: userId,
+      isPublished: true,
+      solvedCount: 0,
+      createdAt: now,
+      updatedAt: now,
     });
   }
 

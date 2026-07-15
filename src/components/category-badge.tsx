@@ -3,5 +3,5 @@ export function CategoryBadge({ category }: { category: string }) {
 }
 
 export function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  return <span className={`badge difficulty-${difficulty}`}>{difficulty.toUpperCase()}</span>;
+  return <span className={`badge difficulty-${difficulty}`}>{difficulty === "hard" ? "HIGH" : difficulty.toUpperCase()}</span>;
 }

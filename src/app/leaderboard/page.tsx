@@ -1,5 +1,5 @@
 import { desc, gt } from "drizzle-orm";
-import { SiteHeader } from "@/components/site-header";
+import { PublicHeader } from "@/components/public-header";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 
@@ -8,7 +8,7 @@ export default async function LeaderboardPage() {
     .from(users).where(gt(users.totalPoints, 0)).orderBy(desc(users.totalPoints)).limit(100);
   return (
     <>
-      <SiteHeader active="leaderboard" />
+      <PublicHeader active="leaderboard" />
       <main className="section">
         <div className="container">
           <div className="section-head reveal">
