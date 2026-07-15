@@ -119,17 +119,47 @@ payload=${b64}
 `;
 }
 
+function contentTypeFor(filename: string) {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  switch (ext) {
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "png":
+      return "image/png";
+    case "wav":
+      return "audio/wav";
+    case "pcap":
+      return "application/vnd.tcpdump.pcap";
+    case "log":
+    case "txt":
+    case "asm":
+    case "py":
+    case "c":
+    case "bf":
+    case "dump":
+    case "dmp":
+    case "bin":
+    case "bytecode":
+      return "text/plain; charset=utf-8";
+    default:
+      return "application/octet-stream";
+  }
+}
+
 export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const blueprint = findChallengeBlueprintBySlug(slug);
   if (!blueprint) {
     return NextResponse.json({ error: "Artifact not found" }, { status: 404 });
   }
+  const resource = blueprint.resources[0];
+  const filename = resource?.name ?? `${slug}.txt`;
 
   return new NextResponse(artifactBody(slug, blueprint.flag), {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${slug}.txt"`,
+      "Content-Type": contentTypeFor(filename),
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "public, max-age=3600, s-maxage=86400",
     },
   });

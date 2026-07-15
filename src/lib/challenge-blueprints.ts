@@ -115,10 +115,10 @@ export const challengeBlueprints: ChallengeBlueprint[] = [
   makeChallenge("crypto", "hard", levelPoints.hard[0], "Hash Extension", "Service token memakai SHA256(secret || message).", "Buat token valid untuk role admin lewat length extension.", artifact("Hash Extension", "txt")),
 
   makeChallenge("forensic", "easy", levelPoints.easy[0], "Exif Dispatch", "Foto dispatch menyimpan catatan kamera dan komentar yang tidak terlihat di preview.", "Ekstrak metadata dan cari flag tersembunyi.", artifact("Exif Dispatch", "jpg")),
-  makeChallenge("forensic", "easy", levelPoints.easy[1], "Broken Header", "File PNG rusak karena magic bytes berubah.", "Repair header file lalu baca pesan visualnya.", artifact("Broken Header", "bin")),
-  makeChallenge("forensic", "medium", levelPoints.medium[0], "Packet Echo", "Capture HTTP kecil menyimpan credential dan response internal.", "Rekonstruksi stream request untuk menemukan flag.", artifact("Packet Echo", "pcap.txt")),
+  makeChallenge("forensic", "easy", levelPoints.easy[1], "Broken Header", "File PNG rusak karena magic bytes berubah.", "Repair header file lalu baca pesan visualnya.", artifact("Broken Header", "png")),
+  makeChallenge("forensic", "medium", levelPoints.medium[0], "Packet Echo", "Capture HTTP kecil menyimpan credential dan response internal.", "Rekonstruksi stream request untuk menemukan flag.", artifact("Packet Echo", "pcap")),
   makeChallenge("forensic", "medium", levelPoints.medium[1], "Auth Timeline", "Log auth berisi brute force, login sukses, dan command sensitif.", "Urutkan event dan temukan command yang mencetak flag.", artifact("Auth Timeline", "log")),
-  makeChallenge("forensic", "hard", levelPoints.hard[0], "Memory Strings", "Dump memory ringkas berisi potongan proses dan string terpecah.", "Carve potongan string yang membentuk flag final.", artifact("Memory Strings", "dump")),
+  makeChallenge("forensic", "hard", levelPoints.hard[0], "Memory Strings", "Dump memory ringkas berisi potongan proses dan string terpecah.", "Carve potongan string yang membentuk flag final.", artifact("Memory Strings", "dmp")),
 
   makeChallenge("osint", "easy", levelPoints.easy[0], "Handle Echo", "Satu handle dipakai ulang di beberapa profil komunitas.", "Cari alias final dari breadcrumb publik di artifact.", artifact("Handle Echo", "txt")),
   makeChallenge("osint", "easy", levelPoints.easy[1], "Geo Drift", "Foto lokasi punya signage dan bayangan yang cukup untuk mempersempit tempat.", "Tentukan landmark yang dimaksud dan baca flag dari note investigasi.", artifact("Geo Drift", "txt")),
@@ -130,7 +130,7 @@ export const challengeBlueprints: ChallengeBlueprint[] = [
   makeChallenge("reversing", "easy", levelPoints.easy[1], "String Trap", "String disamarkan dengan XOR satu byte.", "Decode string dari artifact dan ambil flag.", artifact("String Trap", "py")),
   makeChallenge("reversing", "medium", levelPoints.medium[0], "State Machine", "Validator bergerak lewat state A sampai F.", "Petakan transisi input yang menghasilkan accepted state.", artifact("State Machine", "txt")),
   makeChallenge("reversing", "medium", levelPoints.medium[1], "Patch Guard", "Pseudo assembly punya anti-tamper branch.", "Identifikasi branch yang harus dipatch dan baca flag.", artifact("Patch Guard", "asm")),
-  makeChallenge("reversing", "hard", levelPoints.hard[0], "Opaque Loop", "Bytecode custom memakai opaque predicate untuk menyembunyikan konstanta.", "Deobfuscate bytecode dan rangkai konstanta flag.", artifact("Opaque Loop", "bytecode")),
+  makeChallenge("reversing", "hard", levelPoints.hard[0], "Opaque Loop", "Bytecode custom memakai opaque predicate untuk menyembunyikan konstanta.", "Deobfuscate bytecode dan rangkai konstanta flag.", artifact("Opaque Loop", "bin")),
 
   makeChallenge("pwn", "easy", levelPoints.easy[0], "Stack Frame", "Binary training punya buffer 32 byte dan fungsi win.", "Hitung offset overflow menuju win dan baca flag dari service notes.", service("Stack Frame")),
   makeChallenge("pwn", "easy", levelPoints.easy[1], "Format Leak", "Program printf memakai input langsung sebagai format string.", "Leak stack slot yang menyimpan flag pointer.", service("Format Leak")),
@@ -138,9 +138,9 @@ export const challengeBlueprints: ChallengeBlueprint[] = [
   makeChallenge("pwn", "medium", levelPoints.medium[1], "ROP Relay", "NX aktif dan binary punya gadget terbatas.", "Susun chain ret2win dari gadget list yang diberikan.", service("ROP Relay")),
   makeChallenge("pwn", "hard", levelPoints.hard[0], "Heap Note", "Note manager punya use-after-free pada chunk name.", "Bangun exploit plan untuk overwrite function pointer.", service("Heap Note")),
 
-  makeChallenge("stego", "easy", levelPoints.easy[0], "LSB Lantern", "Gambar membawa pesan di bit terakhir channel biru.", "Ekstrak LSB dan susun teks flag.", artifact("LSB Lantern", "png.txt")),
+  makeChallenge("stego", "easy", levelPoints.easy[0], "LSB Lantern", "Gambar membawa pesan di bit terakhir channel biru.", "Ekstrak LSB dan susun teks flag.", artifact("LSB Lantern", "png")),
   makeChallenge("stego", "easy", levelPoints.easy[1], "Exif Whisper", "Metadata komentar menyimpan payload yang di-encode.", "Baca metadata dan decode payload.", artifact("Exif Whisper", "jpg")),
-  makeChallenge("stego", "medium", levelPoints.medium[0], "Spectrogram Note", "Audio pendek menyimpan teks di domain frekuensi.", "Gunakan petunjuk spektrogram untuk membaca flag.", artifact("Spectrogram Note", "wav.txt")),
+  makeChallenge("stego", "medium", levelPoints.medium[0], "Spectrogram Note", "Audio pendek menyimpan teks di domain frekuensi.", "Gunakan petunjuk spektrogram untuk membaca flag.", artifact("Spectrogram Note", "wav")),
   makeChallenge("stego", "medium", levelPoints.medium[1], "PNG Trailer", "File PNG punya ZIP kecil ditempel di akhir file.", "Carve trailer dan baca file flag di dalamnya.", artifact("PNG Trailer", "png")),
   makeChallenge("stego", "hard", levelPoints.hard[0], "Polyglot Vault", "Carrier valid sebagai gambar dan arsip sekaligus.", "Identifikasi format kedua, ekstrak vault, lalu decode flag.", artifact("Polyglot Vault", "bin")),
 
