@@ -372,9 +372,9 @@ tr:hover td { background: color-mix(in oklch, var(--color-paper) 2.5%, transpare
 .podium-3 { --podium-color: oklch(70% .13 58); min-height: 292px; background: radial-gradient(circle at 50% 15%, oklch(70% .13 58 / .27), transparent 43%), color-mix(in oklch, var(--color-panel) 66%, transparent); }
 .podium-avatar { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base); }
 .player-avatar { object-fit: cover; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base), box-shadow var(--dur-base); }
-.player-cell:hover .player-avatar { transform: scale(1.08) rotate(-3deg); border-color: var(--color-cyan); box-shadow: 0 0 22px color-mix(in oklch, var(--color-cyan) 24%, transparent); }
-.leaderboard-table tr { transition: transform var(--dur-fast) var(--ease-out); }
-.leaderboard-table tr:hover { transform: translateX(4px); }
+.player-cell:hover .player-avatar { border-color: var(--color-cyan); box-shadow: 0 0 22px color-mix(in oklch, var(--color-cyan) 24%, transparent); }
+.leaderboard-table tr { transition: background var(--dur-fast) var(--ease-out); }
+.leaderboard-table tr:hover td { background: color-mix(in oklch, var(--color-violet) 6%, transparent); }
 .feature-strip article, .stat-card, .card, .admin-callout, .file-row, .badge { transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base), background var(--dur-base), box-shadow var(--dur-base); }
 .feature-strip article:hover, .stat-card:hover, .card:hover, .admin-callout:hover, .file-row:hover { transform: translateY(-4px); border-color: color-mix(in oklch, var(--color-violet) 46%, transparent); box-shadow: 0 18px 70px oklch(0% 0 0 / .24); }
 .badge:hover { transform: translateY(-1px); border-color: currentColor; }
@@ -384,4 +384,9 @@ tr:hover td { background: color-mix(in oklch, var(--color-paper) 2.5%, transpare
   .podium-grid { grid-template-columns: 1fr; }
   .podium-1, .podium-2, .podium-3, .podium-card { min-height: 260px; }
 }
+
+
+
+
+
 
