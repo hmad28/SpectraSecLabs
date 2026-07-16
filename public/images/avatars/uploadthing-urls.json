@@ -1,4 +1,4 @@
-export const defaultAvatars = [
+[
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZRKpQtfGBfs2Oxqkd3bX8V46ZrFtYlK9T1gya",
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZDIHMcvVlZ8ysQS1jNfFRWXzg3OVrn24PMpai",
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZLsxLRyf3u0dx1i769OvmFIUX8pRzG3kVLcth",
@@ -13,31 +13,5 @@ export const defaultAvatars = [
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZ3DSHn49vTlGiN02ugoIfzAEUL8y3SxPsZkat",
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZWWwUGCRnrcQBi9xkXjK4AIOdeat605gbZwCp",
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZWnE5F5CRnrcQBi9xkXjK4AIOdeat605gbZwC",
-  "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZhCyTTguvSXG8aqplxAy0kw6iodIrgzR3PM2t",
-] as const;
-
-function seedHash(seed: string) {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
-  }
-  return hash;
-}
-
-export function defaultAvatarForSeed(seed: string | null | undefined) {
-  const key = seed?.trim() || "spectrasec-operator";
-  return defaultAvatars[seedHash(key) % defaultAvatars.length];
-}
-
-function normalizeAvatarUrl(value: string | null | undefined) {
-  if (!value) return null;
-  const match = value.match(/\/images\/avatars\/avatar-(\d{2})\.svg$/);
-  if (!match) return value;
-  const index = Number(match[1]) - 1;
-  return defaultAvatars[index] ?? value;
-}
-
-export function avatarForUser(user: { image?: string | null; avatarUrl?: string | null; id?: string | null; username?: string | null; email?: string | null }) {
-  return normalizeAvatarUrl(user.image) || normalizeAvatarUrl(user.avatarUrl) || defaultAvatarForSeed(user.id || user.username || user.email);
-}
-
+  "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZhCyTTguvSXG8aqplxAy0kw6iodIrgzR3PM2t"
+]
