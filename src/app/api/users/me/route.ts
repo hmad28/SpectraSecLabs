@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { defaultAvatarForSeed } from "@/lib/avatars";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,24}$/;
 
@@ -14,8 +13,7 @@ export async function PUT(request: Request) {
 
   const body = await request.json() as Record<string, unknown>;
   const username = typeof body.username === "string" ? body.username.trim().toLowerCase() : "";
-  const uploadedImage = typeof body.image === "string" && body.image.startsWith("https://") ? body.image : null;
-  const image = uploadedImage ?? defaultAvatarForSeed(`${session.user.id}:${username}`);
+  const uploadedImage = typeof body.image === "string" && body.image.startsWith("https://blvuo7dgop.ufs.sh/") ? body.image : null;
 
   if (!USERNAME_PATTERN.test(username)) {
     return NextResponse.json({ error: "Username harus 3-24 karakter: huruf kecil, angka, atau underscore" }, { status: 400 });
@@ -26,9 +24,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Username sudah dipakai" }, { status: 409 });
   }
 
-  await db.update(users).set({ username, displayName: username, name: username, image, avatarUrl: image, updatedAt: new Date() }).where(eq(users.id, session.user.id));
+  await db.update(users).set({ username, displayName: username, name: username, updatedAt: new Date(), ...(uploadedImage ? { image: uploadedImage, avatarUrl: uploadedImage } : {}) }).where(eq(users.id, session.user.id));
   return NextResponse.json({ success: true, username });
 }
 
 export const POST = PUT;
+
 

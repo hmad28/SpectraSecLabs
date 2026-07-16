@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { defaultAvatarForSeed } from "@/lib/avatars";
 import { safeRedirectPath } from "@/lib/validation";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,24}$/;
@@ -20,7 +19,7 @@ function RegisterForm() {
     const handle = username.trim().toLowerCase();
     if (!USERNAME_PATTERN.test(handle)) { setError("Username harus 3-24 karakter: huruf kecil, angka, atau underscore."); setLoading(false); return; }
     try {
-      const response = await fetch("/api/auth/sign-up/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: handle, username: handle, displayName: handle, image: defaultAvatarForSeed(handle), avatarUrl: defaultAvatarForSeed(handle), email, password, callbackURL: redirect }) });
+      const response = await fetch("/api/auth/sign-up/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: handle, username: handle, displayName: handle, email, password, callbackURL: redirect }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { setError(data.message || "Pendaftaran gagal."); return; }
       if (data.user && data.user.emailVerified === false) {
@@ -48,5 +47,6 @@ function RegisterForm() {
   </main>;
 }
 export default function RegisterPage() { return <Suspense><RegisterForm /></Suspense>; }
+
 
 

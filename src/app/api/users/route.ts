@@ -23,11 +23,12 @@ type PublicScoreRow = {
   hard: number;
   insane: number;
   categories: number;
+  avatarIndex: number;
 };
 
 export async function GET() {
   const result = await db.execute<PublicScoreRow>(sql`
-    SELECT u.id, u.username, u.display_name AS "displayName", u.email, u.image, u.avatar_url AS "avatarUrl", u.total_points AS "totalPoints",
+    SELECT u.id, u.username, u.display_name AS "displayName", u.email, u.image, u.avatar_url AS "avatarUrl", u.total_points AS "totalPoints", ROW_NUMBER() OVER (ORDER BY u.created_at ASC, u.id ASC)::int AS "avatarIndex",
       COUNT(s.id)::int AS solves,
       COUNT(s.id) FILTER (WHERE s.is_pioneer = true)::int AS pioneers,
       COUNT(s.id) FILTER (WHERE c.difficulty = 'easy')::int AS easy,
@@ -38,13 +39,14 @@ export async function GET() {
     FROM users u
     LEFT JOIN solves s ON s.user_id = u.id
     LEFT JOIN challenges c ON c.id = s.challenge_id
-    GROUP BY u.id, u.username, u.display_name, u.email, u.image, u.avatar_url, u.total_points, u.updated_at
+    WHERE u.role = 'user' AND u.username IS NOT NULL AND u.username <> ''
+    GROUP BY u.id, u.username, u.display_name, u.email, u.image, u.avatar_url, u.total_points, u.updated_at, u.created_at
     ORDER BY u.total_points DESC, u.updated_at ASC
     LIMIT 500
   `);
   return NextResponse.json(result.rows.map((user, index) => {
     const badge = bestBadge({ easy: Number(user.easy), medium: Number(user.medium), hard: Number(user.hard), insane: Number(user.insane), pioneers: Number(user.pioneers), categories: Number(user.categories), categoryTotal: 8 });
-    return { rank: index + 1, id: user.id, handle: playerHandle(user), avatar: avatarForUser(user), totalPoints: Number(user.totalPoints), solves: Number(user.solves), pioneers: Number(user.pioneers), bestBadge: badge?.label ?? null };
+    return { rank: index + 1, id: user.id, handle: playerHandle(user), avatar: avatarForUser({ ...user, avatarIndex: Number(user.avatarIndex) }), totalPoints: Number(user.totalPoints), solves: Number(user.solves), pioneers: Number(user.pioneers), bestBadge: badge?.label ?? null };
   }));
 }
 
@@ -68,5 +70,6 @@ export async function POST(request: Request) {
   await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
   return NextResponse.json({ success: true });
 }
+
 
 

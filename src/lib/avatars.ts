@@ -16,28 +16,37 @@ export const defaultAvatars = [
   "https://blvuo7dgop.ufs.sh/f/9GKNFWsjEoSZhCyTTguvSXG8aqplxAy0kw6iodIrgzR3PM2t",
 ] as const;
 
-function seedHash(seed: string) {
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
-  }
-  return hash;
+const defaultAvatarSet = new Set<string>(defaultAvatars);
+
+function indexAvatar(index: number) {
+  const safeIndex = Number.isFinite(index) && index > 0 ? Math.floor(index) - 1 : 0;
+  return defaultAvatars[safeIndex % defaultAvatars.length];
+}
+
+function legacyLocalAvatar(value: string) {
+  const match = value.match(/\/images\/avatars\/avatar-(\d{2})\.svg$/);
+  return match ? indexAvatar(Number(match[1])) : null;
+}
+
+function uploadedAvatar(value: string | null | undefined) {
+  if (!value) return null;
+  const legacy = legacyLocalAvatar(value);
+  if (legacy) return null;
+  if (defaultAvatarSet.has(value)) return null;
+  if (value.includes("googleusercontent.com") || value.includes("ggpht.com")) return null;
+  return value.startsWith("https://blvuo7dgop.ufs.sh/") ? value : null;
+}
+
+export function defaultAvatarForIndex(index: number | null | undefined) {
+  return indexAvatar(index ?? 1);
 }
 
 export function defaultAvatarForSeed(seed: string | null | undefined) {
-  const key = seed?.trim() || "spectrasec-operator";
-  return defaultAvatars[seedHash(key) % defaultAvatars.length];
+  const parsed = Number(seed?.match(/\d+/)?.[0] ?? 1);
+  return defaultAvatarForIndex(parsed);
 }
 
-function normalizeAvatarUrl(value: string | null | undefined) {
-  if (!value) return null;
-  const match = value.match(/\/images\/avatars\/avatar-(\d{2})\.svg$/);
-  if (!match) return value;
-  const index = Number(match[1]) - 1;
-  return defaultAvatars[index] ?? value;
-}
-
-export function avatarForUser(user: { image?: string | null; avatarUrl?: string | null; id?: string | null; username?: string | null; email?: string | null }) {
-  return normalizeAvatarUrl(user.image) || normalizeAvatarUrl(user.avatarUrl) || defaultAvatarForSeed(user.id || user.username || user.email);
+export function avatarForUser(user: { image?: string | null; avatarUrl?: string | null; avatarIndex?: number | null }) {
+  return uploadedAvatar(user.image) || uploadedAvatar(user.avatarUrl) || defaultAvatarForIndex(user.avatarIndex ?? 1);
 }
 
