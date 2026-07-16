@@ -37,11 +37,13 @@ const platformCapabilities = [
 ] as const;
 
 function PodiumCard({ row, rank }: { row: LeaderboardRow; rank: number }) {
+  const medal = rank === 1 ? "CHAMPION" : rank === 2 ? "RUNNER-UP" : "THIRD PLACE";
+  const handle = playerHandle(row);
   const badge = bestBadge({ easy: row.easy, medium: row.medium, hard: row.hard, insane: row.insane, pioneers: row.pioneers, categories: row.categories, categoryTotal: 8 });
   return <article className={`podium-card podium-${rank}`}>
-    <span className="podium-rank">#{rank}</span>
-    <Image className="player-avatar podium-avatar" src={avatarForUser(row)} alt="" width={86} height={86} />
-    <div><h2>{playerHandle(row, row.email)}</h2>{badge ? <span className={`badge badge-${badge.tone}`}>{badge.label}</span> : null}</div>
+    <span className="podium-rank">#{rank}</span><span className="podium-medal">{medal}</span>
+    <Image className="player-avatar podium-avatar" src={avatarForUser(row)} alt="" width={86} height={86} unoptimized />
+    <div><h2 className={handle === "pending_username" ? "pending-handle" : ""}>{handle}</h2>{badge ? <span className={`badge badge-${badge.tone}`}>{badge.label}</span> : null}</div>
     <strong>{row.totalPoints} pts</strong>
     <p>{row.solves} solves · {row.pioneers} pioneers</p>
   </article>;
@@ -68,10 +70,9 @@ export default async function LeaderboardPage() {
     FROM users u
     LEFT JOIN solves s ON s.user_id = u.id
     LEFT JOIN challenges c ON c.id = s.challenge_id
-    WHERE u.total_points > 0
     GROUP BY u.id, u.username, u.display_name, u.email, u.image, u.avatar_url, u.total_points, u.updated_at
     ORDER BY u.total_points DESC, u.updated_at ASC
-    LIMIT 50
+    LIMIT 500
   `);
   const rows = result.rows.map((row) => ({ ...row, totalPoints: Number(row.totalPoints), solves: Number(row.solves), pioneers: Number(row.pioneers), easy: Number(row.easy), medium: Number(row.medium), hard: Number(row.hard), insane: Number(row.insane), categories: Number(row.categories) }));
   const podium = rows.slice(0, 3);
@@ -96,7 +97,7 @@ export default async function LeaderboardPage() {
           {tableRows.length ? <div className="table-wrapper leaderboard-table reveal reveal-delay"><table><thead><tr><th>Rank</th><th>Operator</th><th>Best Badge</th><th>Points</th><th>Solves</th><th>Pioneer</th></tr></thead><tbody>
             {tableRows.map((user, index) => {
               const badge = bestBadge({ easy: user.easy, medium: user.medium, hard: user.hard, insane: user.insane, pioneers: user.pioneers, categories: user.categories, categoryTotal: 8 });
-              return <tr key={user.id}><td><strong className="rank">#{String(index + 1).padStart(2, "0")}</strong></td><td><span className="player-cell"><Image className="player-avatar" src={avatarForUser(user)} alt="" width={42} height={42} /><strong>{playerHandle(user, user.email)}</strong></span></td><td>{badge ? <span className={`badge badge-${badge.tone}`}>{badge.label}</span> : <span className="text-muted">-</span>}</td><td><strong className="points">{user.totalPoints}</strong></td><td>{user.solves}</td><td>{user.pioneers ? <span className="badge badge-red">{user.pioneers}x</span> : <span className="text-muted">0</span>}</td></tr>;
+              return <tr key={user.id}><td><strong className="rank">#{String(index + 1).padStart(2, "0")}</strong></td><td><span className="player-cell"><Image className="player-avatar" src={avatarForUser(user)} alt="" width={42} height={42} unoptimized /><strong className={playerHandle(user) === "pending_username" ? "pending-handle" : ""}>{playerHandle(user)}</strong></span></td><td>{badge ? <span className={`badge badge-${badge.tone}`}>{badge.label}</span> : <span className="text-muted">-</span>}</td><td><strong className="points">{user.totalPoints}</strong></td><td>{user.solves}</td><td>{user.pioneers ? <span className="badge badge-red">{user.pioneers}x</span> : <span className="text-muted">0</span>}</td></tr>;
             })}
           </tbody></table></div> : <div className="empty-state"><p>Belum ada solve. Jadilah pemain pertama di leaderboard.</p></div>}
 
@@ -108,6 +109,9 @@ export default async function LeaderboardPage() {
     </>
   );
 }
+
+
+
 
 
 

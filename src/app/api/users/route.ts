@@ -38,14 +38,13 @@ export async function GET() {
     FROM users u
     LEFT JOIN solves s ON s.user_id = u.id
     LEFT JOIN challenges c ON c.id = s.challenge_id
-    WHERE u.total_points > 0
     GROUP BY u.id, u.username, u.display_name, u.email, u.image, u.avatar_url, u.total_points, u.updated_at
     ORDER BY u.total_points DESC, u.updated_at ASC
-    LIMIT 100
+    LIMIT 500
   `);
   return NextResponse.json(result.rows.map((user, index) => {
     const badge = bestBadge({ easy: Number(user.easy), medium: Number(user.medium), hard: Number(user.hard), insane: Number(user.insane), pioneers: Number(user.pioneers), categories: Number(user.categories), categoryTotal: 8 });
-    return { rank: index + 1, id: user.id, handle: playerHandle(user, user.email), avatar: avatarForUser(user), totalPoints: Number(user.totalPoints), solves: Number(user.solves), pioneers: Number(user.pioneers), bestBadge: badge?.label ?? null };
+    return { rank: index + 1, id: user.id, handle: playerHandle(user), avatar: avatarForUser(user), totalPoints: Number(user.totalPoints), solves: Number(user.solves), pioneers: Number(user.pioneers), bestBadge: badge?.label ?? null };
   }));
 }
 
@@ -69,3 +68,5 @@ export async function POST(request: Request) {
   await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
   return NextResponse.json({ success: true });
 }
+
+

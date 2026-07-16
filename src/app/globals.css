@@ -331,6 +331,7 @@ tr:hover td { background: color-mix(in oklch, var(--color-paper) 2.5%, transpare
 .podium-2 { --podium-color: var(--color-cyan); }
 .podium-3 { --podium-color: var(--color-warning); }
 .podium-rank { position: absolute; top: 18px; left: 18px; color: var(--podium-color); font: 900 34px/1 var(--font-display); letter-spacing: -.05em; }
+.podium-medal { position: absolute; top: 24px; right: 18px; color: var(--podium-color); font: 900 9px var(--font-mono); letter-spacing: .14em; }
 .podium-card h2 { margin: 0 0 8px; font: 800 clamp(1.45rem, 3vw, 2.2rem)/1 var(--font-display); letter-spacing: -.045em; overflow-wrap: anywhere; }
 .podium-card strong { position: relative; z-index: 1; color: var(--podium-color); font: 900 28px/1 var(--font-mono); }
 .podium-card p { position: relative; z-index: 1; margin: 0; color: var(--color-muted); font: 800 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
@@ -354,3 +355,33 @@ tr:hover td { background: color-mix(in oklch, var(--color-paper) 2.5%, transpare
   .podium-1, .podium-card { min-height: 260px; }
   .feature-strip { grid-template-columns: 1fr; }
 }
+
+/* Username gate */
+.onboarding-overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 22px; background: radial-gradient(circle at 50% 18%, color-mix(in oklch, var(--color-violet) 24%, transparent), transparent 34%), color-mix(in oklch, var(--color-ink) 86%, transparent); backdrop-filter: blur(18px); animation: reveal var(--dur-base) var(--ease-out) both; }
+.onboarding-card { width: min(520px, 100%); padding: clamp(24px, 4vw, 38px); border: 1px solid color-mix(in oklch, var(--color-violet) 48%, transparent); background: linear-gradient(135deg, color-mix(in oklch, var(--color-panel-raised) 90%, transparent), color-mix(in oklch, var(--color-panel) 72%, transparent)); box-shadow: 0 34px 140px oklch(0% 0 0 / .58); }
+.onboarding-card h2 { margin: 0 0 10px; font: 900 clamp(2rem, 6vw, 3.4rem)/.94 var(--font-display); letter-spacing: -.055em; }
+.onboarding-card > p { margin: 0 0 24px; color: var(--color-muted); }
+
+/* Leaderboard refinement overrides */
+.podium-grid { grid-template-columns: minmax(0, .92fr) minmax(0, 1.2fr) minmax(0, .92fr); gap: clamp(12px, 2vw, 22px); perspective: 1200px; }
+.podium-card { transform: translateY(0) rotateX(0deg); transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base), box-shadow var(--dur-base), background var(--dur-base); }
+.podium-card:hover { transform: translateY(-10px) rotateX(3deg); border-color: color-mix(in oklch, var(--podium-color) 72%, transparent); box-shadow: 0 28px 90px color-mix(in oklch, var(--podium-color) 18%, transparent); }
+.podium-card:hover .podium-avatar { transform: translateY(-4px) scale(1.07) rotate(-2deg); }
+.podium-1 { --podium-color: oklch(86% .18 86); min-height: 370px; background: radial-gradient(circle at 50% 12%, oklch(86% .18 86 / .32), transparent 42%), linear-gradient(180deg, color-mix(in oklch, var(--color-panel-raised) 78%, transparent), color-mix(in oklch, var(--color-panel) 74%, transparent)); }
+.podium-2 { --podium-color: oklch(86% .025 255); min-height: 315px; background: radial-gradient(circle at 50% 15%, oklch(86% .025 255 / .28), transparent 43%), color-mix(in oklch, var(--color-panel) 66%, transparent); }
+.podium-3 { --podium-color: oklch(70% .13 58); min-height: 292px; background: radial-gradient(circle at 50% 15%, oklch(70% .13 58 / .27), transparent 43%), color-mix(in oklch, var(--color-panel) 66%, transparent); }
+.podium-avatar { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base); }
+.player-avatar { object-fit: cover; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base), box-shadow var(--dur-base); }
+.player-cell:hover .player-avatar { transform: scale(1.08) rotate(-3deg); border-color: var(--color-cyan); box-shadow: 0 0 22px color-mix(in oklch, var(--color-cyan) 24%, transparent); }
+.leaderboard-table tr { transition: transform var(--dur-fast) var(--ease-out); }
+.leaderboard-table tr:hover { transform: translateX(4px); }
+.feature-strip article, .stat-card, .card, .admin-callout, .file-row, .badge { transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base), background var(--dur-base), box-shadow var(--dur-base); }
+.feature-strip article:hover, .stat-card:hover, .card:hover, .admin-callout:hover, .file-row:hover { transform: translateY(-4px); border-color: color-mix(in oklch, var(--color-violet) 46%, transparent); box-shadow: 0 18px 70px oklch(0% 0 0 / .24); }
+.badge:hover { transform: translateY(-1px); border-color: currentColor; }
+.pending-handle { color: var(--color-warning); font-family: var(--font-mono); }
+
+@media (max-width: 900px) {
+  .podium-grid { grid-template-columns: 1fr; }
+  .podium-1, .podium-2, .podium-3, .podium-card { min-height: 260px; }
+}
+

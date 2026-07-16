@@ -2,7 +2,6 @@ import { createHash } from "crypto";
 
 export type PublicUserIdentity = {
   username?: string | null;
-  displayName?: string | null;
 };
 
 export function emailFingerprint(email: string) {
@@ -13,10 +12,6 @@ export function shortEmailFingerprint(email: string, length = 16) {
   return emailFingerprint(email).slice(0, length);
 }
 
-export function anonymousHandle(email: string) {
-  return `operator_${shortEmailFingerprint(email, 8)}`;
-}
-
-export function playerHandle(user: PublicUserIdentity, email?: string | null) {
-  return user.username?.trim() || user.displayName?.trim() || (email ? anonymousHandle(email) : "operator");
+export function playerHandle(user: PublicUserIdentity) {
+  return user.username?.trim() || "pending_username";
 }
