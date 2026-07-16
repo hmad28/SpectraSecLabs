@@ -6,9 +6,9 @@ import { UploadDropzone } from "@/lib/uploadthing-client";
 
 type Status = "idle" | "saving" | "success" | "error";
 
-async function postJson(path: string, body: Record<string, unknown>) {
+async function requestJson(path: string, method: "POST" | "PUT", body: Record<string, unknown>) {
   const response = await fetch(path, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -16,9 +16,9 @@ async function postJson(path: string, body: Record<string, unknown>) {
   return { response, data };
 }
 
-export function SettingsForm({ initialName, initialImage, email, emailVerified, hasPassword }: { initialName: string; initialImage?: string | null; email: string; emailVerified: boolean; hasPassword: boolean; }) {
+export function SettingsForm({ initialUsername, initialImage, emailHash, emailVerified, hasPassword }: { initialUsername: string; initialImage?: string | null; emailHash: string; emailVerified: boolean; hasPassword: boolean; }) {
   const router = useRouter();
-  const [name, setName] = useState(initialName);
+  const [username, setUsername] = useState(initialUsername);
   const [image, setImage] = useState(initialImage ?? "");
   const [profileStatus, setProfileStatus] = useState<Status>("idle");
   const [profileMessage, setProfileMessage] = useState("");
@@ -36,14 +36,16 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     event.preventDefault();
     setProfileStatus("saving");
     setProfileMessage("");
-    const { response, data } = await postJson("/api/users/me", { name, image: image || null });
+    const normalizedUsername = username.trim().toLowerCase();
+    const { response, data } = await requestJson("/api/users/me", "PUT", { username: normalizedUsername, image: image || null });
     if (!response.ok) {
       setProfileStatus("error");
       setProfileMessage(data.error || "Gagal menyimpan profil");
       return;
     }
+    setUsername(data.username || normalizedUsername);
     setProfileStatus("success");
-    setProfileMessage("Profil berhasil diperbarui.");
+    setProfileMessage("Username berhasil diperbarui.");
     router.refresh();
   }
 
@@ -57,7 +59,7 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     setPasswordStatus("saving");
     setPasswordMessage("");
     const body = hasPassword ? { currentPassword, newPassword } : { newPassword };
-    const { response, data } = await postJson("/api/users/password", body);
+    const { response, data } = await requestJson("/api/users/password", "POST", body);
     if (!response.ok) {
       setPasswordStatus("error");
       setPasswordMessage(data.message || data.error || "Gagal menyimpan password");
@@ -75,7 +77,7 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     setSendingOtp(true);
     setOtpStatus("idle");
     setOtpMessage("");
-    const { response, data } = await postJson("/api/auth/email-otp/send-verification-otp", { email, type: "email-verification" });
+    const { response, data } = await requestJson("/api/users/email-verification", "POST", {});
     if (!response.ok) {
       setOtpStatus("error");
       setOtpMessage(data.message || data.error || "Gagal mengirim OTP");
@@ -83,7 +85,7 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
       return;
     }
     setOtpStatus("success");
-    setOtpMessage("OTP verifikasi sudah dikirim ke email kamu.");
+    setOtpMessage("OTP verifikasi sudah dikirim ke email akun kamu.");
     setSendingOtp(false);
   }
 
@@ -91,7 +93,7 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     event.preventDefault();
     setOtpStatus("saving");
     setOtpMessage("");
-    const { response, data } = await postJson("/api/auth/email-otp/verify-email", { email, otp });
+    const { response, data } = await requestJson("/api/users/email-verification", "PUT", { otp });
     if (!response.ok) {
       setOtpStatus("error");
       setOtpMessage(data.message || data.error || "OTP tidak valid");
@@ -105,11 +107,11 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
 
   return <div className="form-shell">
     <form className="card" onSubmit={saveProfile}>
-      <p className="eyebrow">PROFILE</p>
-      <div className="form-group"><label className="form-label" htmlFor="display-name">Display name</label><input id="display-name" className="input" minLength={2} maxLength={80} required value={name} onChange={(event) => setName(event.target.value)} /></div>
+      <p className="eyebrow">OPERATOR HANDLE</p>
+      <div className="form-group"><label className="form-label" htmlFor="username">Username</label><input id="username" className="input" minLength={3} maxLength={24} pattern="[a-z0-9_]+" required value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())} /><p className="form-hint">Identitas publik. Pakai handle, bukan nama asli. Format: huruf kecil, angka, underscore.</p></div>
       <div className="form-group"><label className="form-label">Avatar</label><div className="upload-zone"><UploadDropzone endpoint="avatar" onClientUploadComplete={(files) => { if (files[0]) setImage(files[0].url); }} onUploadError={(error) => { setProfileStatus("error"); setProfileMessage(error.message); }} /></div>{image ? <p className="form-hint">Avatar siap disimpan: {image.slice(0, 48)}...</p> : null}</div>
       {profileMessage ? <div className={`form-message ${profileStatus === "success" ? "success" : ""}`}>{profileMessage}</div> : null}
-      <button className="btn btn-primary" disabled={profileStatus === "saving"}>{profileStatus === "saving" ? "Menyimpan..." : "Simpan Profil →"}</button>
+      <button className="btn btn-primary" disabled={profileStatus === "saving"}>{profileStatus === "saving" ? "Menyimpan..." : "Simpan Username →"}</button>
     </form>
 
     <form className="card" onSubmit={savePassword} style={{ marginTop: 16 }}>
@@ -124,9 +126,8 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
 
     <div className="card" style={{ marginTop: 16 }}>
       <p className="eyebrow">EMAIL OTP</p>
-      <p className="form-hint">Status email: {emailVerified ? "verified" : "pending verification"}. OTP dipakai untuk verifikasi dan reset password.</p>
+      <p className="form-hint">Email hash: <code>{emailHash}</code>. Status: {emailVerified ? "verified" : "pending verification"}. Email mentah tidak ditampilkan di UI publik.</p>
       <form onSubmit={verifyEmail}>
-        <div className="form-group"><label className="form-label" htmlFor="otp-email">Email</label><input id="otp-email" className="input" value={email} disabled /></div>
         <div className="form-group"><label className="form-label" htmlFor="otp-code">OTP</label><input id="otp-code" className="input" inputMode="numeric" value={otp} onChange={(event) => setOtp(event.target.value)} placeholder="123456" /></div>
         {otpMessage ? <div className={`form-message ${otpStatus === "success" ? "success" : ""}`}>{otpMessage}</div> : null}
         <div className="hero-actions" style={{ marginTop: 0 }}>
@@ -137,4 +138,5 @@ export function SettingsForm({ initialName, initialImage, email, emailVerified, 
     </div>
   </div>;
 }
+
 

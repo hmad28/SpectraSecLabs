@@ -17,7 +17,7 @@ export async function SiteHeader({ active }: { active?: "labs" | "leaderboard" }
         {session ? <Link href="/dashboard">Dashboard</Link> : <Link href="/login">Masuk</Link>}
       </nav>
       <Link href={session ? "/dashboard" : "/register"} className="header-cta">
-        {session ? session.user.name : "Mulai Challenge"}<span aria-hidden="true">↗</span>
+        {session ? "Dashboard" : "Mulai Challenge"}<span aria-hidden="true">↗</span>
       </Link>
       <details className="mobile-menu">
         <summary aria-label="Buka navigasi"><span /><span /></summary>

@@ -4,15 +4,17 @@ import { desc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { playerHandle } from "@/lib/privacy";
 
 export async function GET() {
   const topUsers = await db.select({
     id: users.id,
-    name: users.name,
+    username: users.username,
     displayName: users.displayName,
+    email: users.email,
     totalPoints: users.totalPoints,
   }).from(users).orderBy(desc(users.totalPoints)).limit(100);
-  return NextResponse.json(topUsers);
+  return NextResponse.json(topUsers.map((user) => ({ id: user.id, handle: playerHandle(user, user.email), totalPoints: user.totalPoints })));
 }
 
 export async function POST(request: Request) {

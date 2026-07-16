@@ -8,7 +8,7 @@ export async function PublicHeader({ active }: { active?: "labs" | "leaderboard"
   const accountHref = session ? (session.user.role === "admin" ? "/admin" : "/dashboard") : "/login";
   const accountLabel = session ? (session.user.role === "admin" ? "Control Room" : "Dashboard") : "Masuk";
   const ctaHref = session ? accountHref : "/register";
-  const ctaLabel = session ? (session.user.name || accountLabel) : "Join Operation";
+  const ctaLabel = session ? accountLabel : "Join Operation";
 
   return (
     <header className="site-header public-header">
@@ -36,4 +36,3 @@ export async function PublicHeader({ active }: { active?: "labs" | "leaderboard"
     </header>
   );
 }
-
