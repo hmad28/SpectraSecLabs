@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="SpectraSec avatar 08">
+  <defs>
+    <linearGradient id="g08" x1="18" y1="14" x2="110" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818cf8"/>
+      <stop offset="1" stop-color="#f472b6"/>
+    </linearGradient>
+    <filter id="glow08" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0a1024"/>
+  <path d="M10 31h20M96 99h22M17 102h13M94 23h16" stroke="#f472b6" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <path d="M64 16 110 42v44l-46 26-46-26V42l46-26Z" fill="url(#g08)" filter="url(#glow08)"/>
+  <path d="M37  " stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M47 78c9 9 25 9 34 0" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".95"/>
+  <path d="M42 31 34 20m52 11 8-11" stroke="#f472b6" stroke-width="5" stroke-linecap="round"/>
+  <circle cx='100' cy='30' r='8' fill='#f472b6' opacity='.9'/><circle cx='28' cy='98' r='5' fill='#818cf8' opacity='.95'/>
+  <path d="M18 18h92v92H18z" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+</svg>

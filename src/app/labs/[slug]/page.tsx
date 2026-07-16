@@ -26,10 +26,11 @@ export default async function ChallengePage({ params }: { params: Promise<{ slug
           <Link href="/labs" className="back-link">← Labs</Link>
           <div className="challenge-layout">
             <article className="challenge-body reveal">
-              <div className="challenge-meta"><CategoryBadge category={challenge.category} /><DifficultyBadge difficulty={challenge.difficulty} /><span className="badge badge-violet">{challenge.points} PTS</span></div>
+              <div className="challenge-meta"><CategoryBadge category={challenge.category} /><DifficultyBadge difficulty={challenge.difficulty} /><span className="badge badge-violet">{challenge.points} PTS</span>{challenge.solvedCount === 0 ? <span className="badge badge-red">PIONEER +30</span> : null}</div>
               <h1>{challenge.title}</h1>
               <div className="challenge-description">{challenge.description}</div>
               {challenge.flagHint ? <aside className="hint"><strong>FLAG</strong><span>{challenge.flagHint}</span></aside> : null}
+              <aside className={`pioneer-panel ${challenge.solvedCount === 0 ? "open" : "claimed"}`}><strong>{challenge.solvedCount === 0 ? "PIONEER SLOT OPEN" : "PIONEER CLAIMED"}</strong><span>{challenge.solvedCount === 0 ? "Solver pertama otomatis dapat +30 poin bonus." : "First blood sudah diambil. Solve berikutnya tetap dapat base points."}</span></aside>
               {files.length ? <section className="challenge-files"><h2>Target & artifacts</h2>{files.map((file) => <a key={file.id} className="file-row" href={file.url} target="_blank" rel="noreferrer"><span>{file.name}</span><span>{file.size > 0 ? `${Math.max(1, Math.round(file.size / 1024))} KB` : "OPEN"} ↗</span></a>)}</section> : null}
             </article>
             <FlagSubmit challengeId={challenge.id} solvedCount={challenge.solvedCount} />
@@ -39,3 +40,4 @@ export default async function ChallengePage({ params }: { params: Promise<{ slug
     </>
   );
 }
+

@@ -8,6 +8,7 @@ import { hashPassword } from "better-auth/crypto";
 import bcrypt from "bcryptjs";
 import * as schema from "../src/lib/db/schema";
 import { challengeBlueprints, challengeSlug } from "../src/lib/challenge-blueprints";
+import { basePointsForDifficulty } from "../src/lib/scoring";
 
 async function seed() {
   const url = process.env.DATABASE_URL;
@@ -89,7 +90,7 @@ async function seed() {
         description: challenge.description,
         category: challenge.category,
         difficulty: challenge.difficulty,
-        points: challenge.points,
+        points: basePointsForDifficulty(challenge.difficulty),
         flagHash: await bcrypt.hash(challenge.flag, 12),
         flagHint: challenge.flagHint,
         authorId: userId,
@@ -116,7 +117,7 @@ async function seed() {
       description: challenge.description,
       category: challenge.category,
       difficulty: challenge.difficulty,
-      points: challenge.points,
+      points: basePointsForDifficulty(challenge.difficulty),
       flagHash: await bcrypt.hash(challenge.flag, 12),
       flagHint: challenge.flagHint,
       authorId: userId,
@@ -143,3 +144,4 @@ seed()
     console.error("Seed failed:", e);
     process.exit(1);
   });
+

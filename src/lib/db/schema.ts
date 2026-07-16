@@ -127,8 +127,10 @@ export const solves = pgTable("solves", {
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   challengeId: text("challenge_id").references(() => challenges.id, { onDelete: "cascade" }).notNull(),
   pointsAwarded: integer("points_awarded").notNull(),
+  isPioneer: boolean("is_pioneer").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   uniqueIndex("solves_user_challenge_idx").on(table.userId, table.challengeId),
   index("solves_created_idx").on(table.createdAt),
 ]);
+

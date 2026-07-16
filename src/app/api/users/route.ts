@@ -1,20 +1,52 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { avatarForUser } from "@/lib/avatars";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { playerHandle } from "@/lib/privacy";
+import { bestBadge } from "@/lib/scoring";
+
+type PublicScoreRow = {
+  id: string;
+  username: string | null;
+  displayName: string | null;
+  email: string;
+  image: string | null;
+  avatarUrl: string | null;
+  totalPoints: number;
+  solves: number;
+  pioneers: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  insane: number;
+  categories: number;
+};
 
 export async function GET() {
-  const topUsers = await db.select({
-    id: users.id,
-    username: users.username,
-    displayName: users.displayName,
-    email: users.email,
-    totalPoints: users.totalPoints,
-  }).from(users).orderBy(desc(users.totalPoints)).limit(100);
-  return NextResponse.json(topUsers.map((user) => ({ id: user.id, handle: playerHandle(user, user.email), totalPoints: user.totalPoints })));
+  const result = await db.execute<PublicScoreRow>(sql`
+    SELECT u.id, u.username, u.display_name AS "displayName", u.email, u.image, u.avatar_url AS "avatarUrl", u.total_points AS "totalPoints",
+      COUNT(s.id)::int AS solves,
+      COUNT(s.id) FILTER (WHERE s.is_pioneer = true)::int AS pioneers,
+      COUNT(s.id) FILTER (WHERE c.difficulty = 'easy')::int AS easy,
+      COUNT(s.id) FILTER (WHERE c.difficulty = 'medium')::int AS medium,
+      COUNT(s.id) FILTER (WHERE c.difficulty = 'hard')::int AS hard,
+      COUNT(s.id) FILTER (WHERE c.difficulty = 'insane')::int AS insane,
+      COUNT(DISTINCT c.category)::int AS categories
+    FROM users u
+    LEFT JOIN solves s ON s.user_id = u.id
+    LEFT JOIN challenges c ON c.id = s.challenge_id
+    WHERE u.total_points > 0
+    GROUP BY u.id, u.username, u.display_name, u.email, u.image, u.avatar_url, u.total_points, u.updated_at
+    ORDER BY u.total_points DESC, u.updated_at ASC
+    LIMIT 100
+  `);
+  return NextResponse.json(result.rows.map((user, index) => {
+    const badge = bestBadge({ easy: Number(user.easy), medium: Number(user.medium), hard: Number(user.hard), insane: Number(user.insane), pioneers: Number(user.pioneers), categories: Number(user.categories), categoryTotal: 8 });
+    return { rank: index + 1, id: user.id, handle: playerHandle(user, user.email), avatar: avatarForUser(user), totalPoints: Number(user.totalPoints), solves: Number(user.solves), pioneers: Number(user.pioneers), bestBadge: badge?.label ?? null };
+  }));
 }
 
 export async function POST(request: Request) {

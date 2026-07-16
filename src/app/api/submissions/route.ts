@@ -7,6 +7,7 @@ import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { challenges, submissions } from "@/lib/db/schema";
+import { PIONEER_BONUS, basePointsForDifficulty } from "@/lib/scoring";
 
 const MAX_ATTEMPTS_PER_MINUTE = 10;
 
@@ -59,31 +60,44 @@ export async function POST(request: Request) {
 
   const submissionId = nanoid();
   const solveId = nanoid();
-  const result = await db.execute<{ awarded: boolean }>(sql`
-    WITH recorded_submission AS (
+  const basePoints = basePointsForDifficulty(challenge.difficulty);
+  const result = await db.execute<{ awarded: boolean; pioneer: boolean; points: number }>(sql`
+    WITH challenge_state AS (
+      SELECT id, solved_count FROM challenges WHERE id = ${challengeId} FOR UPDATE
+    ), recorded_submission AS (
       INSERT INTO submissions (id, user_id, challenge_id, flag_submitted, is_correct)
       VALUES (${submissionId}, ${session.user.id}, ${challengeId}, ${fingerprint}, true)
     ), new_solve AS (
-      INSERT INTO solves (id, user_id, challenge_id, points_awarded)
-      VALUES (${solveId}, ${session.user.id}, ${challengeId}, ${challenge.points})
+      INSERT INTO solves (id, user_id, challenge_id, points_awarded, is_pioneer)
+      SELECT ${solveId}, ${session.user.id}, ${challengeId},
+        ${basePoints} + CASE WHEN challenge_state.solved_count = 0 THEN ${PIONEER_BONUS} ELSE 0 END,
+        challenge_state.solved_count = 0
+      FROM challenge_state
       ON CONFLICT (user_id, challenge_id) DO NOTHING
-      RETURNING user_id, challenge_id
+      RETURNING user_id, challenge_id, points_awarded, is_pioneer
     ), update_user AS (
       UPDATE users
-      SET total_points = total_points + ${challenge.points}, updated_at = now()
+      SET total_points = total_points + (SELECT points_awarded FROM new_solve), updated_at = now()
       WHERE id IN (SELECT user_id FROM new_solve)
     ), update_challenge AS (
       UPDATE challenges
       SET solved_count = solved_count + 1, updated_at = now()
       WHERE id IN (SELECT challenge_id FROM new_solve)
     )
-    SELECT EXISTS(SELECT 1 FROM new_solve) AS awarded
+    SELECT EXISTS(SELECT 1 FROM new_solve) AS awarded,
+      COALESCE((SELECT is_pioneer FROM new_solve), false) AS pioneer,
+      COALESCE((SELECT points_awarded FROM new_solve), 0) AS points
   `);
-  const awarded = result.rows[0]?.awarded === true;
+  const row = result.rows[0];
+  const awarded = row?.awarded === true;
 
   return NextResponse.json({
     correct: true,
     alreadySolved: !awarded,
-    points: awarded ? challenge.points : 0,
+    pioneer: awarded ? row?.pioneer === true : false,
+    points: awarded ? Number(row?.points ?? 0) : 0,
+    basePoints,
+    pioneerBonus: awarded && row?.pioneer === true ? PIONEER_BONUS : 0,
   });
 }
+

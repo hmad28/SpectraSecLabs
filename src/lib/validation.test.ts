@@ -19,6 +19,7 @@ test("parseChallengeInput validates enums and point boundaries", () => {
     flag: "SPECTRA{test}",
     files: [],
   }, true);
-  assert.equal(parsed.points, 100);
+  assert.equal(parsed.points, 50);
   assert.equal(parsed.category, "web");
 });
+

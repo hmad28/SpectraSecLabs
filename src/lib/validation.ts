@@ -1,3 +1,5 @@
+import { basePointsForDifficulty } from "@/lib/scoring";
+
 export const challengeCategories = ["web", "crypto", "forensic", "osint", "reversing", "pwn", "stego", "misc"] as const;
 export const challengeDifficulties = ["easy", "medium", "hard", "insane"] as const;
 
@@ -15,11 +17,9 @@ function requiredText(value: unknown, field: string, max: number) {
 export function parseChallengeInput(value: unknown, requireFlag: boolean) {
   if (!value || typeof value !== "object") throw new Error("Payload tidak valid");
   const input = value as Record<string, unknown>;
-  const points = Number(input.points);
   const flag = typeof input.flag === "string" ? input.flag.trim() : "";
   if (!oneOf(input.category, challengeCategories)) throw new Error("Kategori tidak valid");
   if (!oneOf(input.difficulty, challengeDifficulties)) throw new Error("Difficulty tidak valid");
-  if (!Number.isInteger(points) || points < 1 || points > 10_000) throw new Error("Poin harus 1-10000");
   if (requireFlag && !flag) throw new Error("Flag wajib diisi");
   if (flag.length > 512) throw new Error("Flag maksimal 512 karakter");
 
@@ -38,7 +38,7 @@ export function parseChallengeInput(value: unknown, requireFlag: boolean) {
     description: requiredText(input.description, "Deskripsi", 20_000),
     category: input.category,
     difficulty: input.difficulty,
-    points,
+    points: basePointsForDifficulty(input.difficulty),
     flag,
     flagHint: typeof input.flagHint === "string" && input.flagHint.trim() ? input.flagHint.trim().slice(0, 255) : null,
     isPublished: input.isPublished === true,
@@ -49,3 +49,4 @@ export function parseChallengeInput(value: unknown, requireFlag: boolean) {
 export function safeRedirectPath(value: string | null, fallback = "/labs") {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : fallback;
 }
+
